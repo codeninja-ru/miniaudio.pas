@@ -1,4 +1,6 @@
 # miniaudio.pas
+DOES NOT WORK YET
+
 pascal binding for miniaudio.h
 
 generated semi-automatic with h2pas

@@ -2,17 +2,255 @@
 unit miniaudio;
 interface
 
-uses CTypes;
+uses Ctypes{$ifndef WIN32},unix{$endif};
 
 {
   Automatically converted by H2Pas 1.0.0 from miniaudio.h
   The following command line parameters were used:
     miniaudio.h
 }
+{$L miniaudio_obj.o}
+
+    const MA_MAX_LOG_CALLBACKS = 4;
+{$if defined(cpu64)}
+
+  const
+    MA_SIZEOF_PTR = 8;    
+{$else}
+
+  const
+    MA_SIZEOF_PTR = 4;    
+{$endif}
+  const
+    MA_TRUE = 1;    
+    MA_FALSE = 0;    
+  { These float types are not used universally by miniaudio. It's to simplify some macro expansion for atomic types.  }
+{$if defined(SIZE_MAX)}
+
+  const
+    MA_SIZE_MAX = SIZE_MAX;    
+{$else}
+  { When SIZE_MAX is not defined by the standard library just default to the maximum 32-bit unsigned integer.  }
+
+  const
+    MA_SIZE_MAX = $FFFFFFFF;    
+{$endif}
+{$ifndef MA_MAX_DEVICE_NAME_LENGTH}
+
+  const
+    MA_MAX_DEVICE_NAME_LENGTH = 255;    
+{$endif}
+
+  const
+    MA_MIN_CHANNELS = 1;    
+
+{$ifndef MA_MAX_CHANNELS}
+
+  const
+    MA_MAX_CHANNELS = 254;    
+{$endif}
+{$ifndef MA_MAX_FILTER_ORDER}
+
+  const
+    MA_MAX_FILTER_ORDER = 8;    
+{$endif}
+  { Must never exceed 254.  }
+{$ifndef MA_MAX_NODE_BUS_COUNT}
+
+  const
+    MA_MAX_NODE_BUS_COUNT = 254;    
+{$endif}
+  { Used internally by miniaudio for memory management. Must never exceed MA_MAX_NODE_BUS_COUNT.  }
+{$ifndef MA_MAX_NODE_LOCAL_BUS_COUNT}
+
+  const
+    MA_MAX_NODE_LOCAL_BUS_COUNT = 2;    
+{$endif}
+{$ifndef MA_RESOURCE_MANAGER_MAX_JOB_THREAD_COUNT}
+
+  const
+    MA_RESOURCE_MANAGER_MAX_JOB_THREAD_COUNT = 64;    
+{$endif}
+{$ifndef MA_ENGINE_MAX_LISTENERS}
+
+  const
+    MA_ENGINE_MAX_LISTENERS = 4;    
+{$endif}
+    //MA_BACKEND_COUNT = ma_backend_null+1;    
+  const
+    MA_SOUND_SOURCE_CHANNEL_COUNT = $FFFFFFFF;    
+
+
 
   Type
-  size_t = csize_t;
+    wchar_t = cint;
   Pchar  = ^char;
+  Pma_allocation_callbacks  = ^ma_allocation_callbacks;
+  Pma_async_notification  = ^ma_async_notification;
+  Pma_async_notification_event  = ^ma_async_notification_event;
+  Pma_async_notification_poll  = ^ma_async_notification_poll;
+  Pma_audio_buffer  = ^ma_audio_buffer;
+  PPma_audio_buffer  = ^Pma_audio_buffer;
+  Pma_audio_buffer_config  = ^ma_audio_buffer_config;
+  Pma_audio_buffer_ref  = ^ma_audio_buffer_ref;
+  Pma_backend  = ^ma_backend;
+  Pma_backend_callbacks  = ^ma_backend_callbacks;
+  Pma_biquad  = ^ma_biquad;
+  Pma_biquad_config  = ^ma_biquad_config;
+  Pma_biquad_node  = ^ma_biquad_node;
+  Pma_biquad_node_config  = ^ma_biquad_node_config;
+  Pma_bpf  = ^ma_bpf;
+  Pma_bpf2  = ^ma_bpf2;
+  Pma_bpf2_config  = ^ma_bpf2_config;
+  Pma_bpf_config  = ^ma_bpf_config;
+  Pma_bpf_node  = ^ma_bpf_node;
+  Pma_bpf_node_config  = ^ma_bpf_node_config;
+  Pma_channel  = ^ma_channel;
+  Pma_channel_converter  = ^ma_channel_converter;
+  Pma_channel_converter_config  = ^ma_channel_converter_config;
+  Pma_context  = ^ma_context;
+  Pma_context_config  = ^ma_context_config;
+  Pma_data_converter  = ^ma_data_converter;
+  Pma_data_converter_config  = ^ma_data_converter_config;
+  Pma_data_source  = ^ma_data_source;
+  PPma_data_source  = ^Pma_data_source;
+  Pma_data_source_config  = ^ma_data_source_config;
+  Pma_data_source_node  = ^ma_data_source_node;
+  Pma_data_source_node_config  = ^ma_data_source_node_config;
+  Pma_decoder  = ^ma_decoder;
+  Pma_decoder_config  = ^ma_decoder_config;
+  Pma_decoding_backend_config  = ^ma_decoding_backend_config;
+  Pma_default_vfs  = ^ma_default_vfs;
+  Pma_delay  = ^ma_delay;
+  Pma_delay_config  = ^ma_delay_config;
+  Pma_delay_node  = ^ma_delay_node;
+  Pma_delay_node_config  = ^ma_delay_node_config;
+  Pma_device  = ^ma_device;
+  Pma_device_config  = ^ma_device_config;
+  Pma_device_descriptor  = ^ma_device_descriptor;
+  Pma_device_id  = ^ma_device_id;
+  Pma_device_info  = ^ma_device_info;
+  PPma_device_info  = ^Pma_device_info;
+  Pma_device_job_thread  = ^ma_device_job_thread;
+  Pma_device_job_thread_config  = ^ma_device_job_thread_config;
+  Pma_device_notification  = ^ma_device_notification;
+  Pma_duplex_rb  = ^ma_duplex_rb;
+  Pma_encoder  = ^ma_encoder;
+  Pma_encoder_config  = ^ma_encoder_config;
+  Pma_engine  = ^ma_engine;
+  Pma_engine_config  = ^ma_engine_config;
+  Pma_engine_node  = ^ma_engine_node;
+  Pma_engine_node_config  = ^ma_engine_node_config;
+  Pma_event  = ^ma_event;
+  Pma_fader  = ^ma_fader;
+  Pma_fader_config  = ^ma_fader_config;
+  Pma_fence  = ^ma_fence;
+  Pma_file_info  = ^ma_file_info;
+  Pma_format  = ^ma_format;
+  Pma_gainer  = ^ma_gainer;
+  Pma_gainer_config  = ^ma_gainer_config;
+  Pma_hishelf2  = ^ma_hishelf2;
+  Pma_hishelf2_config  = ^ma_hishelf2_config;
+  Pma_hishelf_config  = ^ma_hishelf_config;
+  Pma_hishelf_node  = ^ma_hishelf_node;
+  Pma_hishelf_node_config  = ^ma_hishelf_node_config;
+  Pma_hpf  = ^ma_hpf;
+  Pma_hpf1  = ^ma_hpf1;
+  Pma_hpf1_config  = ^ma_hpf1_config;
+  Pma_hpf2  = ^ma_hpf2;
+  Pma_hpf2_config  = ^ma_hpf2_config;
+  Pma_hpf_config  = ^ma_hpf_config;
+  Pma_hpf_node  = ^ma_hpf_node;
+  Pma_hpf_node_config  = ^ma_hpf_node_config;
+  Pma_int16  = ^ma_int16;
+  Pma_int32  = ^ma_int32;
+  PPma_int32  = ^Pma_int32;
+  Pma_int64  = ^ma_int64;
+  Pma_job  = ^ma_job;
+  Pma_job_queue  = ^ma_job_queue;
+  Pma_job_queue_config  = ^ma_job_queue_config;
+  Pma_linear_resampler  = ^ma_linear_resampler;
+  Pma_linear_resampler_config  = ^ma_linear_resampler_config;
+  Pma_log  = ^ma_log;
+  Pma_loshelf2  = ^ma_loshelf2;
+  Pma_loshelf2_config  = ^ma_loshelf2_config;
+  Pma_loshelf_config  = ^ma_loshelf_config;
+  Pma_loshelf_node  = ^ma_loshelf_node;
+  Pma_loshelf_node_config  = ^ma_loshelf_node_config;
+  Pma_lpf  = ^ma_lpf;
+  Pma_lpf1  = ^ma_lpf1;
+  Pma_lpf1_config  = ^ma_lpf1_config;
+  Pma_lpf2  = ^ma_lpf2;
+  Pma_lpf2_config  = ^ma_lpf2_config;
+  Pma_lpf_config  = ^ma_lpf_config;
+  Pma_lpf_node  = ^ma_lpf_node;
+  Pma_lpf_node_config  = ^ma_lpf_node_config;
+  Pma_mutex  = ^ma_mutex;
+  Pma_node  = ^ma_node;
+  Pma_node_config  = ^ma_node_config;
+  Pma_node_graph  = ^ma_node_graph;
+  Pma_node_graph_config  = ^ma_node_graph_config;
+  Pma_noise  = ^ma_noise;
+  Pma_noise_config  = ^ma_noise_config;
+  Pma_notch2  = ^ma_notch2;
+  Pma_notch2_config  = ^ma_notch2_config;
+  Pma_notch_config  = ^ma_notch_config;
+  Pma_notch_node  = ^ma_notch_node;
+  Pma_notch_node_config  = ^ma_notch_node_config;
+  Pma_paged_audio_buffer  = ^ma_paged_audio_buffer;
+  Pma_paged_audio_buffer_config  = ^ma_paged_audio_buffer_config;
+  Pma_paged_audio_buffer_data  = ^ma_paged_audio_buffer_data;
+  Pma_paged_audio_buffer_page  = ^ma_paged_audio_buffer_page;
+  PPma_paged_audio_buffer_page  = ^Pma_paged_audio_buffer_page;
+  Pma_panner  = ^ma_panner;
+  Pma_panner_config  = ^ma_panner_config;
+  Pma_pcm_rb  = ^ma_pcm_rb;
+  Pma_peak2  = ^ma_peak2;
+  Pma_peak2_config  = ^ma_peak2_config;
+  Pma_peak_config  = ^ma_peak_config;
+  Pma_peak_node  = ^ma_peak_node;
+  Pma_peak_node_config  = ^ma_peak_node_config;
+  Pma_pulsewave  = ^ma_pulsewave;
+  Pma_pulsewave_config  = ^ma_pulsewave_config;
+  Pma_rb  = ^ma_rb;
+  Pma_resampler  = ^ma_resampler;
+  Pma_resampler_config  = ^ma_resampler_config;
+  Pma_resampling_backend  = ^ma_resampling_backend;
+  PPma_resampling_backend  = ^Pma_resampling_backend;
+  Pma_resource_manager  = ^ma_resource_manager;
+  Pma_resource_manager_config  = ^ma_resource_manager_config;
+  Pma_resource_manager_data_buffer  = ^ma_resource_manager_data_buffer;
+  Pma_resource_manager_data_source  = ^ma_resource_manager_data_source;
+  Pma_resource_manager_data_source_config  = ^ma_resource_manager_data_source_config;
+  Pma_resource_manager_data_stream  = ^ma_resource_manager_data_stream;
+  Pma_resource_manager_pipeline_notifications  = ^ma_resource_manager_pipeline_notifications;
+  Pma_slot_allocator  = ^ma_slot_allocator;
+  Pma_slot_allocator_config  = ^ma_slot_allocator_config;
+  Pma_sound  = ^ma_sound;
+  Pma_sound_config  = ^ma_sound_config;
+  Pma_sound_group  = ^ma_sound_group;
+  Pma_sound_group_config  = ^ma_sound_group_config;
+  Pma_spatializer  = ^ma_spatializer;
+  Pma_spatializer_config  = ^ma_spatializer_config;
+  Pma_spatializer_listener  = ^ma_spatializer_listener;
+  Pma_spatializer_listener_config  = ^ma_spatializer_listener_config;
+  Pma_spinlock  = ^ma_spinlock;
+  Pma_splitter_node  = ^ma_splitter_node;
+  Pma_splitter_node_config  = ^ma_splitter_node_config;
+  Pma_uint32  = ^ma_uint32;
+  Pma_uint64  = ^ma_uint64;
+  Pma_uint8  = ^ma_uint8;
+  Pma_vec3f  = ^ma_vec3f;
+  Pma_vfs  = ^ma_vfs;
+  Pma_vfs_file  = ^ma_vfs_file;
+  Pma_waveform  = ^ma_waveform;
+  Pma_waveform_config  = ^ma_waveform_config;
+  Psingle  = ^single;
+  PPsingle  = ^Psingle;
+  Pdouble  = ^double;
+  PPdouble  = ^Pdouble;
+  Psize_t  = ^size_t;
+  Pwchar_t  = ^wchar_t;
 {$IFDEF FPC}
 {$PACKRECORDS C}
 {$ENDIF}
@@ -2197,7 +2435,7 @@ uses CTypes;
       ```
   
   When initializing a custom node, as in the code above, you'll normally just place your vtable in
-  static space. The number of input and output buses are specified as part of the vtable. If you need
+  //static space. The number of input and output buses are specified as part of the vtable. If you need
   a variable number of buses on a per-node bases, the vtable should have the relevant bus count set
   to `MA_NODE_BUS_COUNT_UNKNOWN`. In this case, the bus count should be set in the node config:
   
@@ -3722,58 +3960,68 @@ uses CTypes;
   - When compiling with VC6 and earlier, decoding is restricted to files less than 2GB in size. This
     is due to 64-bit file APIs not being available.
    }
-{ifndef miniaudio_h}
+{$ifndef miniaudio_h}
 {$define miniaudio_h}  
-{//$include <stddef.h> /* For size_t. */}
+{ C++ extern C conditionnal removed }
+{$if defined(_MSC_VER) && NOT defined(__clang__)}
+(** unsupported pragma#pragma warning(push)*)
+(** unsupported pragma#pragma warning(disable:4201)   /* nonstandard extension used: nameless struct/union */*)
+(** unsupported pragma#pragma warning(disable:4214)   /* nonstandard extension used: bit field types other than int */*)
+(** unsupported pragma#pragma warning(disable:4324)   /* structure was padded due to alignment specifier */*)
+(*** was #elif ****){$else defined(__clang__) OR (defined(__GNUC__) && (__GNUC__ > 4 OR (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)))}
+(** unsupported pragma#pragma GCC diagnostic push*)
+(** unsupported pragma#pragma GCC diagnostic ignored "-Wpedantic" /* For ISO C99 doesn't support unnamed structs/unions [-Wpedantic] */*)
+{$endif}
+{include <stddef.h> /* For size_t. */}
   { Sized types.  }
-  type
-    ma_int8 = cint8;
+{$if defined(MA_USE_STDINT)}
+{$include <stdint.h>}
 
-    ma_uint8 = cuint8;
+    ma_int8 = int8_t;
 
-    ma_int16 = cint16;
+    ma_uint8 = uint8_t;
 
-    ma_uint16 = cuint16;
+    ma_int16 = int16_t;
 
-    ma_int32 = cint32;
+    ma_uint16 = uint16_t;
 
-    ma_uint32 = cuint32;
+    ma_int32 = int32_t;
 
-    ma_int64 = cint64;
+    ma_uint32 = uint32_t;
 
-    ma_uint64 = cuint64;
+    ma_int64 = int64_t;
+
+    ma_uint64 = uint64_t;
+{$else}
+
+    ma_int8 = char;
+
+    ma_uint8 = byte;
+
+    ma_int16 = smallint;
+
+    ma_uint16 = word;
+
+    ma_int32 = longint;
+
+    ma_uint32 = dword;
+
+    ma_int64 = int64;
+
+    ma_uint64 = qword;
+{$endif}
+  { MA_USE_STDINT  }
+{$if MA_SIZEOF_PTR = 8}
+    ma_uintptr = ma_uint64;
+{$else}
+
+    ma_uintptr = ma_uint32;
+{$endif}
 
     ma_bool8 = ma_uint8;
 
     ma_bool32 = ma_uint32;
-    Pma_uint8  = ^ma_uint8;
-    Pma_int16  = ^ma_int16;
-    Pma_int32  = ^ma_int32;
-    Pma_int64  = ^ma_int64;
-{$if defined(cpu64)}
 
-  const
-    MA_SIZEOF_PTR = 8;    
-{$else}
-
-  const
-    MA_SIZEOF_PTR = 4;    
-{$endif}
-{$if defined(cpu64)}
-  type
-    ma_uintptr = ma_uint64;
-{$else}
-  type
-    ma_uintptr = ma_uint32;
-{$endif}
-
-  const
-    MA_TRUE = 1;    
-    MA_FALSE = 0;    
-    MA_MAX_DEVICE_NAME_LENGTH = 255;    
-  { These float types are not used universally by miniaudio. It's to simplify some macro expansion for atomic types.  }
-
-  type
     ma_float = single;
 
     ma_double = double;
@@ -3781,34 +4029,21 @@ uses CTypes;
     ma_handle = pointer;
 
     ma_ptr = pointer;
+{$if defined(__GNUC__)}
     ma_proc = procedure (_para1:pointer);cdecl;
-    wchar_t = ma_uint16;
-  {
-  ma_proc is annoying because when compiling with GCC we get pendantic warnings about converting
-  between `void*` and `void (*)()`. We can't use `void (*)()` with MSVC however, because we'll get
-  warning C4191 about "type cast between incompatible function types". To work around this I'm going
-  to use a different data type depending on the compiler.
-   }
-  { Platform/backend detection.  }
-{$if defined(_WIN32) OR defined(__COSMOPOLITAN__)}
-{$define MA_WIN32}  
-{$if defined(MA_FORCE_UWP) OR (defined(WINAPI_FAMILY) AND ((defined(WINAPI_FAMILY_PC_APP) AND WINAPI_FAMILY == WINAPI_FAMILY_PC_APP) OR (defined(WINAPI_FAMILY_PHONE_APP) AND WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)))}
-{$define MA_WIN32_UWP}  
 {$else}
-  {$if defined(WINAPI_FAMILY) AND (defined(WINAPI_FAMILY_GAMES) AND WINAPI_FAMILY == WINAPI_FAMILY_GAMES)}
-{$if NOT defined(_WIN32)    /* If it's not Win32, assume POSIX. */}
-{$define MA_POSIX}  
-  {
-      Use the MA_NO_PTHREAD_IN_HEADER option at your own risk. This is intentionally undocumented.
-      You can use this to avoid including pthread.h in the header section. The downside is that it
-      results in some fixed sized structures being declared for the various types that are used in
-      miniaudio. The risk here is that these types might be too small for a given platform. This
-      risk is yours to take and no support will be offered if you enable this option.
-       }
-{$ifndef MA_NO_PTHREAD_IN_HEADER}
-{$include <pthread.h>    /* Unfortunate #include, but needed for pthread_t, pthread_mutex_t and pthread_cond_t types. */}
 
-  type
+    ma_proc = pointer;
+{$endif}
+{$if defined(_MSC_VER) && NOT defined(_WCHAR_T_DEFINED)}
+
+    wchar_t = ma_uint16;
+{$endif}
+{$ifndef WIN32    /* If it's not Win32, assume POSIX. */}
+{$define MA_POSIX}  
+{$ifndef MA_NO_PTHREAD_IN_HEADER}
+{include <pthread.h>    /* Unfortunate #include, but needed for pthread_t, pthread_mutex_t and pthread_cond_t types. */}
+
     ma_pthread_t = pthread_t;
 
     ma_pthread_mutex_t = pthread_mutex_t;
@@ -3816,7 +4051,6 @@ uses CTypes;
     ma_pthread_cond_t = pthread_cond_t;
 {$else}
 
-  type
     ma_pthread_t = ma_uintptr;
 
     ma_pthread_mutex_t = record
@@ -3831,19 +4065,19 @@ uses CTypes;
           1 : ( __alignment : ma_uint64 );
         end;
 {$endif}
-{$if defined(__unix__)}
+{$if defined(UNIX)}
 {$define MA_UNIX}  
 {$endif}
-{$if defined(__linux__)}
+{$if defined(LINUX)}
 {$define MA_LINUX}  
 {$endif}
-{$if defined(__APPLE__)}
+{$if defined(DARWIN)}
 {$define MA_APPLE}  
 {$endif}
-{$if defined(__DragonFly__) OR defined(__FreeBSD__) OR defined(__NetBSD__) OR defined(__OpenBSD__)}
+{$if defined(DragonFly) OR defined(FREEBSD) OR defined(NETBSD) OR defined(OPENBSD)}
 {$define MA_BSD}  
 {$endif}
-{$if defined(__ANDROID__)}
+{$if defined(ANDROID)}
 {$define MA_ANDROID}  
 {$endif}
 {$if defined(__EMSCRIPTEN__)}
@@ -3858,20 +4092,24 @@ uses CTypes;
 {$if defined(__NX__)}
 {$define MA_NX}  
 {$endif}
-{$if defined(__BEOS__) OR defined(__HAIKU__)}
+{$if defined(BEOS) OR defined(HAIKU)}
 {$define MA_BEOS}  
 {$endif}
-{$if defined(__HAIKU__)}
+{$if defined(HAIKU)}
 {$define MA_HAIKU}  
 {$endif}
 {$endif}
+{$if NOT defined(MA_FALLTHROUGH) && defined(__has_attribute) && (defined(__clang__) OR defined(__GNUC__))}
 {$endif}
-{$endif}
-{$endif}
+  {
+      I've had a bug report where GCC is emitting warnings about functions possibly not being inlineable. This warning happens when
+      the __attribute__((always_inline)) attribute is defined without an "inline" statement. I think therefore there must be some
+      case where "__inline__" is not always defined, thus the compiler emitting these warnings. When using -std=c89 or -ansi on the
+      command line, we cannot use the "inline" keyword and instead need to use "__inline__". In an attempt to work around this issue
+      I am using "__inline__" only when we're compiling in strict ANSI mode.
+       }
   { SIMD alignment in bytes. Currently set to 32 bytes in preparation for future AVX optimizations.  }
 
-  const
-    MA_SIMD_ALIGNMENT = 32;    
   {
   Special wchar_t type to ensure any structures in the public sections that reference it have a
   consistent size across all platforms.
@@ -3880,13 +4118,9 @@ uses CTypes;
   wchar_t for it's IDs, we need a special explicitly sized wchar type that is always 2 bytes on all
   platforms.
    }
-{$if NOT defined(MA_POSIX) AND defined(MA_WIN32)}
-
-  type
+{$if NOT defined(MA_POSIX) && defined(WIN32)}
     ma_wchar_win32 = wchar_t;
 {$else}
-
-  type
     ma_wchar_win32 = ma_uint16;
 {$endif}
   {
@@ -3914,7 +4148,6 @@ uses CTypes;
       always have this log level enabled.
    }
 
-  type
     ma_log_level = (MA_LOG_LEVEL_DEBUG := 4,MA_LOG_LEVEL_INFO := 3,
       MA_LOG_LEVEL_WARNING := 2,MA_LOG_LEVEL_ERROR := 1
       );
@@ -4005,20 +4238,7 @@ uses CTypes;
       MA_FAILED_TO_STOP_BACKEND_DEVICE := -(403)
       );
 
-  const
-    MA_MIN_CHANNELS = 1;    
-{$ifndef MA_MAX_CHANNELS}
 
-  const
-    MA_MAX_CHANNELS = 254;    
-{$endif}
-{$ifndef MA_MAX_FILTER_ORDER}
-
-  const
-    MA_MAX_FILTER_ORDER = 8;    
-{$endif}
-
-  type
     ma_stream_format = (ma_stream_format_pcm := 0);
 
     ma_stream_layout = (ma_stream_layout_interleaved := 0,ma_stream_layout_deinterleaved
@@ -4133,13 +4353,32 @@ uses CTypes;
   For pointer types it's the same, which makes them a bit messy to use due to the length of each function name, but in
   return you get type safety and enforcement of atomic operations.
    }
+  {_Alignas(4) }
+    ma_atomic_uint32 = record
+        value : ma_uint32;
+      end;
+  {_Alignas(4) }
+    ma_atomic_int32 = record
+        value : ma_int32;
+      end;
+  {_Alignas(8) }
+    ma_atomic_uint64 = record
+        value : ma_uint64;
+      end;
+  {_Alignas(4) }
+    ma_atomic_float = record
+        value : ma_float;
+      end;
+  {_Alignas(4) }
+    ma_atomic_bool32 = record
+        value : ma_bool32;
+      end;
   { Spinlocks are 32-bit for compatibility reasons.  }
 
     ma_spinlock = ma_uint32;
 {$ifndef MA_NO_THREADING}
   { Thread priorities should be ordered such that the default priority of the worker thread is 0.  }
 
-  type
     ma_thread_priority = (ma_thread_priority_idle := -(5),ma_thread_priority_lowest := -(4),
       ma_thread_priority_low := -(3),ma_thread_priority_normal := -(2),
       ma_thread_priority_high := -(1),ma_thread_priority_highest := 0,
@@ -4147,25 +4386,20 @@ uses CTypes;
       );
 {$if defined(MA_POSIX)}
 
-  type
     ma_thread = ma_pthread_t;
 (*** was #elif ****){$else defined(MA_WIN32)}
 
-  type
     ma_thread = ma_handle;
 {$endif}
 {$if defined(MA_POSIX)}
 
-  type
     ma_mutex = ma_pthread_mutex_t;
 (*** was #elif ****){$else defined(MA_WIN32)}
 
-  type
     ma_mutex = ma_handle;
 {$endif}
 {$if defined(MA_POSIX)}
 
-  type
     ma_event = record
         value : ma_uint32;
         lock : ma_pthread_mutex_t;
@@ -4173,12 +4407,10 @@ uses CTypes;
       end;
 (*** was #elif ****){$else defined(MA_WIN32)}
 
-  type
     ma_event = ma_handle;
 {$endif}
 {$if defined(MA_POSIX)}
 
-  type
     ma_semaphore = record
         value : longint;
         lock : ma_pthread_mutex_t;
@@ -4186,36 +4418,28 @@ uses CTypes;
       end;
 (*** was #elif ****){$else defined(MA_WIN32)}
 
-  type
     ma_semaphore = ma_handle;
 {$endif}
 {$else}
   { MA_NO_THREADING is set which means threading is disabled. Threading is required by some API families. If any of these are enabled we need to throw an error.  }
-{$ifndef MA_NO_DEVICE_IO}
-{$error "MA_NO_THREADING cannot be used without MA_NO_DEVICE_IO";}
-{$endif}
 {$endif}
   { MA_NO_THREADING  }
   {
   Retrieves the version of miniaudio as separated integers. Each component can be NULL if it's not required.
    }
 
-  type
-  Pma_uint32  = ^ma_uint32;
-
-  procedure ma_version(pMajor:Pma_uint32; pMinor:Pma_uint32; pRevision:Pma_uint32);cdecl; external;
 
   {
   Retrieves the version of miniaudio as a string which can be useful for logging purposes.
    }
 (* Const before type ignored *)
-  function ma_version_string:pchar;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
   Logging
   
   ************************************************************************************************************************************************************* }
+  {#include <stdarg.h> /* For va_list. */ }
   {
   The callback for handling log messages.
   
@@ -4242,8 +4466,6 @@ uses CTypes;
    }
 (* Const before type ignored *)
 
-  type
-
     ma_log_callback_proc = procedure (pUserData:pointer; level:ma_uint32; pMessage:Pchar);cdecl;
 
     ma_log_callback = record
@@ -4251,16 +4473,9 @@ uses CTypes;
         pUserData : pointer;
       end;
 
-  function ma_log_callback_init(onLog:ma_log_callback_proc; pUserData:pointer):ma_log_callback;cdecl; external;
 
   { Need to store these persistently because ma_log_postv() might need to allocate a buffer on the heap.  }
-{$ifndef MA_NO_THREADING}
-  { For thread safety just to make it easier and safer for the logging implementation.  }
-{$endif}
 
-  const MA_MAX_LOG_CALLBACKS = 4;
-
-  type
     ma_log = record
         callbacks : array[0..(MA_MAX_LOG_CALLBACKS)-1] of ma_log_callback;
         callbackCount : ma_uint32;
@@ -4269,33 +4484,13 @@ uses CTypes;
       end;
 (* Const before type ignored *)
 
-
-type 
-  Pma_allocation_callbacks  = ^ma_allocation_callbacks;
-  Pma_log  = ^ma_log;
-
-  function ma_log_init(pAllocationCallbacks:Pma_allocation_callbacks; pLog:Pma_log):ma_result;cdecl; external;
-
-  procedure ma_log_uninit(pLog:Pma_log);cdecl; external;
-
-  function ma_log_register_callback(pLog:Pma_log; callback:ma_log_callback):ma_result;cdecl; external;
-
-  function ma_log_unregister_callback(pLog:Pma_log; callback:ma_log_callback):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_log_post(pLog:Pma_log; level:ma_uint32; pMessage:Pchar):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  {TODO}
-  {function ma_log_postv(pLog:Pma_log; level:ma_uint32; pFormat:Pchar; args:va_list):ma_result;cdecl;}
-
+  {extern ma_result ma_log_postf(ma_log* pLog, ma_uint32 level, const char* pFormat, ...) MA_ATTRIBUTE_FORMAT(3, 4); }
   {*************************************************************************************************************************************************************
   
   Biquad Filtering
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_biquad_coefficient = record
         case longint of
           0 : ( f32 : single );
@@ -4313,12 +4508,9 @@ type
         a2 : double;
       end;
 
-  function ma_biquad_config_init(format:ma_format; channels:ma_uint32; b0:double; b1:double; b2:double; 
-             a0:double; a1:double; a2:double):ma_biquad_config;cdecl; external;
 
   { Memory management.  }
 
-  type
     ma_biquad = record
         format : ma_format;
         channels : ma_uint32;
@@ -4332,34 +4524,8 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-
-  Psize_t  = ^size_t;
-  Pma_biquad  = ^ma_biquad;
-  Pma_biquad_config  = ^ma_biquad_config;
 (* Const before type ignored *)
 
-  function ma_biquad_get_heap_size(pConfig:Pma_biquad_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_biquad_init_preallocated(pConfig:Pma_biquad_config; pHeap:pointer; pBQ:Pma_biquad):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_biquad_init(pConfig:Pma_biquad_config; pAllocationCallbacks:Pma_allocation_callbacks; pBQ:Pma_biquad):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_biquad_uninit(pBQ:Pma_biquad; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_biquad_reinit(pConfig:Pma_biquad_config; pBQ:Pma_biquad):ma_result;cdecl; external;
-
-  function ma_biquad_clear_cache(pBQ:Pma_biquad):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_biquad_process_pcm_frames(pBQ:Pma_biquad; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_biquad_get_latency(pBQ:Pma_biquad):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4367,7 +4533,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_lpf1_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4377,13 +4542,8 @@ type
       end;
     ma_lpf2_config = ma_lpf1_config;
 
-  function ma_lpf1_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double):ma_lpf1_config;cdecl; external;
-
-  function ma_lpf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; q:double):ma_lpf2_config;cdecl; external;
-
   { Memory management.  }
 
-  type
     ma_lpf1 = record
         format : ma_format;
         channels : ma_uint32;
@@ -4392,69 +4552,15 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_lpf1  = ^ma_lpf1;
-  Pma_lpf1_config  = ^ma_lpf1_config;
 (* Const before type ignored *)
 
-  function ma_lpf1_get_heap_size(pConfig:Pma_lpf1_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_lpf1_init_preallocated(pConfig:Pma_lpf1_config; pHeap:pointer; pLPF:Pma_lpf1):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_lpf1_init(pConfig:Pma_lpf1_config; pAllocationCallbacks:Pma_allocation_callbacks; pLPF:Pma_lpf1):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_lpf1_uninit(pLPF:Pma_lpf1; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf1_reinit(pConfig:Pma_lpf1_config; pLPF:Pma_lpf1):ma_result;cdecl; external;
-
-  function ma_lpf1_clear_cache(pLPF:Pma_lpf1):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf1_process_pcm_frames(pLPF:Pma_lpf1; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf1_get_latency(pLPF:Pma_lpf1):ma_uint32;cdecl; external;
-
-  { The second order low-pass filter is implemented as a biquad filter.  }
-
-  type
     ma_lpf2 = record
         bq : ma_biquad;
       end;
-  Pma_lpf2  = ^ma_lpf2;
-  Pma_lpf2_config  = ^ma_lpf2_config;
 (* Const before type ignored *)
 
-  function ma_lpf2_get_heap_size(pConfig:Pma_lpf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_lpf2_init_preallocated(pConfig:Pma_lpf2_config; pHeap:pointer; pHPF:Pma_lpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_lpf2_init(pConfig:Pma_lpf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pLPF:Pma_lpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_lpf2_uninit(pLPF:Pma_lpf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf2_reinit(pConfig:Pma_lpf2_config; pLPF:Pma_lpf2):ma_result;cdecl; external;
-
-  function ma_lpf2_clear_cache(pLPF:Pma_lpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf2_process_pcm_frames(pLPF:Pma_lpf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf2_get_latency(pLPF:Pma_lpf2):ma_uint32;cdecl; external;
-
-  { If set to 0, will be treated as a passthrough (no filtering will be applied).  }
-
-  type
     ma_lpf_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4463,11 +4569,8 @@ type
         order : ma_uint32;
       end;
 
-  function ma_lpf_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_lpf_config;cdecl; external;
-
   { Memory management.  }
 
-  type
     ma_lpf = record
         format : ma_format;
         channels : ma_uint32;
@@ -4479,32 +4582,8 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_lpf_config  = ^ma_lpf_config;
-  Pma_lpf  = ^ma_lpf;
 (* Const before type ignored *)
 
-  function ma_lpf_get_heap_size(pConfig:Pma_lpf_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf_init_preallocated(pConfig:Pma_lpf_config; pHeap:pointer; pLPF:Pma_lpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_lpf_init(pConfig:Pma_lpf_config; pAllocationCallbacks:Pma_allocation_callbacks; pLPF:Pma_lpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_lpf_uninit(pLPF:Pma_lpf; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf_reinit(pConfig:Pma_lpf_config; pLPF:Pma_lpf):ma_result;cdecl; external;
-
-  function ma_lpf_clear_cache(pLPF:Pma_lpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf_process_pcm_frames(pLPF:Pma_lpf; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf_get_latency(pLPF:Pma_lpf):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4512,7 +4591,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_hpf1_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4522,13 +4600,8 @@ type
       end;
     ma_hpf2_config = ma_hpf1_config;
 
-  function ma_hpf1_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double):ma_hpf1_config;cdecl; external;
-
-  function ma_hpf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; q:double):ma_hpf2_config;cdecl; external;
-
   { Memory management.  }
 
-  type
     ma_hpf1 = record
         format : ma_format;
         channels : ma_uint32;
@@ -4537,65 +4610,15 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_hpf1_config  = ^ma_hpf1_config;
-  Pma_hpf1  = ^ma_hpf1;
 (* Const before type ignored *)
 
-  function ma_hpf1_get_heap_size(pConfig:Pma_hpf1_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_hpf1_init_preallocated(pConfig:Pma_hpf1_config; pHeap:pointer; pLPF:Pma_hpf1):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_hpf1_init(pConfig:Pma_hpf1_config; pAllocationCallbacks:Pma_allocation_callbacks; pHPF:Pma_hpf1):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_hpf1_uninit(pHPF:Pma_hpf1; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf1_reinit(pConfig:Pma_hpf1_config; pHPF:Pma_hpf1):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf1_process_pcm_frames(pHPF:Pma_hpf1; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf1_get_latency(pHPF:Pma_hpf1):ma_uint32;cdecl; external;
-
-  { The second order high-pass filter is implemented as a biquad filter.  }
-
-  type
     ma_hpf2 = record
         bq : ma_biquad;
       end;
-  Pma_hpf2  = ^ma_hpf2;
-  Pma_hpf2_config  = ^ma_hpf2_config;
 (* Const before type ignored *)
 
-  function ma_hpf2_get_heap_size(pConfig:Pma_hpf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_hpf2_init_preallocated(pConfig:Pma_hpf2_config; pHeap:pointer; pHPF:Pma_hpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_hpf2_init(pConfig:Pma_hpf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pHPF:Pma_hpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_hpf2_uninit(pHPF:Pma_hpf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf2_reinit(pConfig:Pma_hpf2_config; pHPF:Pma_hpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf2_process_pcm_frames(pHPF:Pma_hpf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf2_get_latency(pHPF:Pma_hpf2):ma_uint32;cdecl; external;
-
-  { If set to 0, will be treated as a passthrough (no filtering will be applied).  }
-
-  type
     ma_hpf_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4604,11 +4627,8 @@ type
         order : ma_uint32;
       end;
 
-  function ma_hpf_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_hpf_config;cdecl; external;
-
   { Memory management.  }
 
-  type
     ma_hpf = record
         format : ma_format;
         channels : ma_uint32;
@@ -4620,30 +4640,8 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_hpf_config  = ^ma_hpf_config;
-  Pma_hpf  = ^ma_hpf;
 (* Const before type ignored *)
 
-  function ma_hpf_get_heap_size(pConfig:Pma_hpf_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf_init_preallocated(pConfig:Pma_hpf_config; pHeap:pointer; pLPF:Pma_hpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_hpf_init(pConfig:Pma_hpf_config; pAllocationCallbacks:Pma_allocation_callbacks; pHPF:Pma_hpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_hpf_uninit(pHPF:Pma_hpf; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf_reinit(pConfig:Pma_hpf_config; pHPF:Pma_hpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf_process_pcm_frames(pHPF:Pma_hpf; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf_get_latency(pHPF:Pma_hpf):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4651,7 +4649,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_bpf2_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4659,43 +4656,15 @@ type
         cutoffFrequency : double;
         q : double;
       end;
-  Pma_bpf2_config  = ^ma_bpf2_config;
-
-  function ma_bpf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; q:double):ma_bpf2_config;cdecl; external;
 
   { The second order band-pass filter is implemented as a biquad filter.  }
 
-  type
     ma_bpf2 = record
         bq : ma_biquad;
       end;
-  Pma_bpf2  = ^ma_bpf2;
 (* Const before type ignored *)
 
-  function ma_bpf2_get_heap_size(pConfig:Pma_bpf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_bpf2_init_preallocated(pConfig:Pma_bpf2_config; pHeap:pointer; pBPF:Pma_bpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_bpf2_init(pConfig:Pma_bpf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pBPF:Pma_bpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_bpf2_uninit(pBPF:Pma_bpf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf2_reinit(pConfig:Pma_bpf2_config; pBPF:Pma_bpf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf2_process_pcm_frames(pBPF:Pma_bpf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf2_get_latency(pBPF:Pma_bpf2):ma_uint32;cdecl; external;
-
-  { If set to 0, will be treated as a passthrough (no filtering will be applied).  }
-
-  type
     ma_bpf_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4703,13 +4672,9 @@ type
         cutoffFrequency : double;
         order : ma_uint32;
       end;
-  Pma_bpf_config  = ^ma_bpf_config;
-
-  function ma_bpf_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_bpf_config;cdecl; external;
 
   { Memory management.  }
 
-  type
     ma_bpf = record
         format : ma_format;
         channels : ma_uint32;
@@ -4718,29 +4683,7 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_bpf  = ^ma_bpf;
 (* Const before type ignored *)
-
-  function ma_bpf_get_heap_size(pConfig:Pma_bpf_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf_init_preallocated(pConfig:Pma_bpf_config; pHeap:pointer; pBPF:Pma_bpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_bpf_init(pConfig:Pma_bpf_config; pAllocationCallbacks:Pma_allocation_callbacks; pBPF:Pma_bpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_bpf_uninit(pBPF:Pma_bpf; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf_reinit(pConfig:Pma_bpf_config; pBPF:Pma_bpf):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf_process_pcm_frames(pBPF:Pma_bpf; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf_get_latency(pBPF:Pma_bpf):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4748,7 +4691,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_notch2_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4757,38 +4699,13 @@ type
         frequency : double;
       end;
     ma_notch_config = ma_notch2_config;
-    Pma_notch2_config  = ^ma_notch2_config;
-
-  function ma_notch2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; q:double; frequency:double):ma_notch2_config;cdecl; external;
 
 
-  type
     ma_notch2 = record
         bq : ma_biquad;
       end;
-  Pma_notch2  = ^ma_notch2;
 (* Const before type ignored *)
 
-  function ma_notch2_get_heap_size(pConfig:Pma_notch2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_notch2_init_preallocated(pConfig:Pma_notch2_config; pHeap:pointer; pFilter:Pma_notch2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_notch2_init(pConfig:Pma_notch2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_notch2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_notch2_uninit(pFilter:Pma_notch2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_notch2_reinit(pConfig:Pma_notch2_config; pFilter:Pma_notch2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_notch2_process_pcm_frames(pFilter:Pma_notch2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_notch2_get_latency(pFilter:Pma_notch2):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4796,7 +4713,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_peak2_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4806,39 +4722,12 @@ type
         frequency : double;
       end;
     ma_peak_config = ma_peak2_config;
-  Pma_peak2_config  = ^ma_peak2_config;
-
-  function ma_peak2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; 
-             frequency:double):ma_peak2_config;cdecl; external;
 
 
-  type
     ma_peak2 = record
         bq : ma_biquad;
       end;
-  Pma_peak2  = ^ma_peak2;
 (* Const before type ignored *)
-
-  function ma_peak2_get_heap_size(pConfig:Pma_peak2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_peak2_init_preallocated(pConfig:Pma_peak2_config; pHeap:pointer; pFilter:Pma_peak2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_peak2_init(pConfig:Pma_peak2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_peak2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_peak2_uninit(pFilter:Pma_peak2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_peak2_reinit(pConfig:Pma_peak2_config; pFilter:Pma_peak2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_peak2_process_pcm_frames(pFilter:Pma_peak2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_peak2_get_latency(pFilter:Pma_peak2):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4846,7 +4735,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_loshelf2_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4856,39 +4744,13 @@ type
         frequency : double;
       end;
     ma_loshelf_config = ma_loshelf2_config;
-  Pma_loshelf2_config  = ^ma_loshelf2_config;
-
-  function ma_loshelf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; shelfSlope:double; 
-             frequency:double):ma_loshelf2_config;cdecl; external;
 
 
-  type
     ma_loshelf2 = record
         bq : ma_biquad;
       end;
-  Pma_loshelf2  = ^ma_loshelf2;
 (* Const before type ignored *)
 
-  function ma_loshelf2_get_heap_size(pConfig:Pma_loshelf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_loshelf2_init_preallocated(pConfig:Pma_loshelf2_config; pHeap:pointer; pFilter:Pma_loshelf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_loshelf2_init(pConfig:Pma_loshelf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_loshelf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_loshelf2_uninit(pFilter:Pma_loshelf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_loshelf2_reinit(pConfig:Pma_loshelf2_config; pFilter:Pma_loshelf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_loshelf2_process_pcm_frames(pFilter:Pma_loshelf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_loshelf2_get_latency(pFilter:Pma_loshelf2):ma_uint32;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -4896,7 +4758,6 @@ type
   
   ************************************************************************************************************************************************************* }
 
-  type
     ma_hishelf2_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -4906,49 +4767,13 @@ type
         frequency : double;
       end;
     ma_hishelf_config = ma_hishelf2_config;
-  Pma_hishelf2_config  = ^ma_hishelf2_config;
-
-  function ma_hishelf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; shelfSlope:double; 
-             frequency:double):ma_hishelf2_config;cdecl; external;
 
 
-  type
     ma_hishelf2 = record
         bq : ma_biquad;
       end;
-  Pma_hishelf2  = ^ma_hishelf2;
 (* Const before type ignored *)
 
-  function ma_hishelf2_get_heap_size(pConfig:Pma_hishelf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hishelf2_init_preallocated(pConfig:Pma_hishelf2_config; pHeap:pointer; pFilter:Pma_hishelf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_hishelf2_init(pConfig:Pma_hishelf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_hishelf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_hishelf2_uninit(pFilter:Pma_hishelf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hishelf2_reinit(pConfig:Pma_hishelf2_config; pFilter:Pma_hishelf2):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hishelf2_process_pcm_frames(pFilter:Pma_hishelf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hishelf2_get_latency(pFilter:Pma_hishelf2):ma_uint32;cdecl; external;
-
-  {
-  Delay
-   }
-  { Set to true to delay the start of the output; false otherwise.  }
-  { 0..1. Default = 1.  }
-  { 0..1. Default = 1.  }
-  { 0..1. Default = 0 (no feedback). Feedback decay. Use this for echo.  }
-
-  type
     ma_delay_config = record
         channels : ma_uint32;
         sampleRate : ma_uint32;
@@ -4958,60 +4783,26 @@ type
         dry : single;
         decay : single;
       end;
-  Pma_delay_config  = ^ma_delay_config;
-
-  function ma_delay_config_init(channels:ma_uint32; sampleRate:ma_uint32; delayInFrames:ma_uint32; decay:single):ma_delay_config;cdecl; external;
 
   { Feedback is written to this cursor. Always equal or in front of the read cursor.  }
 
-  type
     ma_delay = record
         config : ma_delay_config;
         cursor : ma_uint32;
         bufferSizeInFrames : ma_uint32;
         pBuffer : ^single;
       end;
-  Pma_delay  = ^ma_delay;
 (* Const before type ignored *)
 (* Const before type ignored *)
 
-  function ma_delay_init(pConfig:Pma_delay_config; pAllocationCallbacks:Pma_allocation_callbacks; pDelay:Pma_delay):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  procedure ma_delay_uninit(pDelay:Pma_delay; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_process_pcm_frames(pDelay:Pma_delay; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint32):ma_result;cdecl; external;
-
-  procedure ma_delay_set_wet(pDelay:Pma_delay; value:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_get_wet(pDelay:Pma_delay):single;cdecl; external;
-
-  procedure ma_delay_set_dry(pDelay:Pma_delay; value:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_get_dry(pDelay:Pma_delay):single;cdecl; external;
-
-  procedure ma_delay_set_decay(pDelay:Pma_delay; value:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_get_decay(pDelay:Pma_delay):single;cdecl; external;
-
-  { Gainer for smooth volume changes.  }
-
-  type
     ma_gainer_config = record
         channels : ma_uint32;
         smoothTimeInFrames : ma_uint32;
       end;
-  Pma_gainer_config  = ^ma_gainer_config;
-
-  function ma_gainer_config_init(channels:ma_uint32; smoothTimeInFrames:ma_uint32):ma_gainer_config;cdecl; external;
 
   { Memory management.  }
 
-  type
     ma_gainer = record
         config : ma_gainer_config;
         t : ma_uint32;
@@ -5021,38 +4812,8 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_gainer  = ^ma_gainer;
 (* Const before type ignored *)
 
-  function ma_gainer_get_heap_size(pConfig:Pma_gainer_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_gainer_init_preallocated(pConfig:Pma_gainer_config; pHeap:pointer; pGainer:Pma_gainer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_gainer_init(pConfig:Pma_gainer_config; pAllocationCallbacks:Pma_allocation_callbacks; pGainer:Pma_gainer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_gainer_uninit(pGainer:Pma_gainer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_gainer_process_pcm_frames(pGainer:Pma_gainer; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-  function ma_gainer_set_gain(pGainer:Pma_gainer; newGain:single):ma_result;cdecl; external;
-
-  function ma_gainer_set_gains(pGainer:Pma_gainer; pNewGains:Psingle):ma_result;cdecl; external;
-
-  function ma_gainer_set_master_volume(pGainer:Pma_gainer; volume:single):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_gainer_get_master_volume(pGainer:Pma_gainer; pVolume:Psingle):ma_result;cdecl; external;
-
-  { Stereo panner.  }
-  { Does not blend one side with the other. Technically just a balance. Compatible with other popular audio engines and therefore the default.  }
-  { A true pan. The sound from one side will "move" to the other side and blend with it.  }
-
-  type
     ma_pan_mode = (ma_pan_mode_balance := 0,ma_pan_mode_pan
       );
 
@@ -5062,54 +4823,31 @@ type
         mode : ma_pan_mode;
         pan : single;
       end;
-  Pma_panner_config  = ^ma_panner_config;
-
-  function ma_panner_config_init(format:ma_format; channels:ma_uint32):ma_panner_config;cdecl; external;
 
   { -1..1 where 0 is no pan, -1 is left side, +1 is right side. Defaults to 0.  }
 
-  type
     ma_panner = record
         format : ma_format;
         channels : ma_uint32;
         mode : ma_pan_mode;
         pan : single;
       end;
-  Pma_panner  = ^ma_panner;
 (* Const before type ignored *)
 
-  function ma_panner_init(pConfig:Pma_panner_config; pPanner:Pma_panner):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_panner_process_pcm_frames(pPanner:Pma_panner; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-  procedure ma_panner_set_mode(pPanner:Pma_panner; mode:ma_pan_mode);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_panner_get_mode(pPanner:Pma_panner):ma_pan_mode;cdecl; external;
-
-  procedure ma_panner_set_pan(pPanner:Pma_panner; pan:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_panner_get_pan(pPanner:Pma_panner):single;cdecl; external;
 
   { Fader.  }
 
-  type
     ma_fader_config = record
         format : ma_format;
         channels : ma_uint32;
         sampleRate : ma_uint32;
       end;
-  Pma_fader_config  = ^ma_fader_config;
 
-  function ma_fader_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32):ma_fader_config;cdecl; external;
 
   { If volumeBeg and volumeEnd is equal to 1, no fading happens (ma_fader_process_pcm_frames() will run as a passthrough).  }
   { The total length of the fade.  }
   { The current time in frames. Incremented by ma_fader_process_pcm_frames(). Signed because it'll be offset by startOffsetInFrames in set_fade_ex().  }
 
-  type
     ma_fader = record
         config : ma_fader_config;
         volumeBeg : single;
@@ -5117,31 +4855,10 @@ type
         lengthInFrames : ma_uint64;
         cursorInFrames : ma_int64;
       end;
-  Pma_fader  = ^ma_fader;
-  Pma_format  = ^ma_format;
 (* Const before type ignored *)
-
-  function ma_fader_init(pConfig:Pma_fader_config; pFader:Pma_fader):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_fader_process_pcm_frames(pFader:Pma_fader; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_fader_get_data_format(pFader:Pma_fader; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32);cdecl; external;
-
-  procedure ma_fader_set_fade(pFader:Pma_fader; volumeBeg:single; volumeEnd:single; lengthInFrames:ma_uint64);cdecl; external;
-
-  procedure ma_fader_set_fade_ex(pFader:Pma_fader; volumeBeg:single; volumeEnd:single; lengthInFrames:ma_uint64; startOffsetInFrames:ma_int64);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_fader_get_current_volume(pFader:Pma_fader):single;cdecl; external;
 
   { Spatializer.  }
 
-  type
-    ma_handedness = (ma_handedness_right,ma_handedness_left
-      );
-  { Defaults to right. Forward is -1 on the Z axis. In a left handed system, forward is +1 on the Z axis.  }
     ma_vec3f = record
         x : single;
         y : single;
@@ -5152,18 +4869,6 @@ type
         v : ma_vec3f;
         lock : ma_spinlock;
       end;
-    ma_spatializer_listener_config = record
-        channelsOut : ma_uint32;
-        pChannelMapOut : ^ma_channel;
-        handedness : ma_handedness;
-        coneInnerAngleInRadians : single;
-        coneOuterAngleInRadians : single;
-        coneOuterGain : single;
-        speedOfSound : single;
-        worldUp : ma_vec3f;
-      end;
-  Pma_spatializer_listener_config  = ^ma_spatializer_listener_config;
-
   { No distance attenuation and no spatialization.  }
   { Equivalent to OpenAL's AL_INVERSE_DISTANCE_CLAMPED.  }
   { Linear attenuation. Equivalent to OpenAL's AL_LINEAR_DISTANCE_CLAMPED.  }
@@ -5176,14 +4881,26 @@ type
     ma_positioning = (ma_positioning_absolute,ma_positioning_relative
       );
 
+    ma_handedness = (ma_handedness_right,ma_handedness_left
+      );
+  { Defaults to right. Forward is -1 on the Z axis. In a left handed system, forward is +1 on the Z axis.  }
 
-  function ma_spatializer_listener_config_init(channelsOut:ma_uint32):ma_spatializer_listener_config;cdecl; external;
+    ma_spatializer_listener_config = record
+        channelsOut : ma_uint32;
+        pChannelMapOut : ^ma_channel;
+        handedness : ma_handedness;
+        coneInnerAngleInRadians : single;
+        coneOuterAngleInRadians : single;
+        coneOuterGain : single;
+        speedOfSound : single;
+        worldUp : ma_vec3f;
+      end;
+
 
   { The absolute position of the listener.  }
   { The direction the listener is facing. The world up vector is config.worldUp.  }
   { Memory management.  }
 
-  type
     ma_spatializer_listener = record
         config : ma_spatializer_listener_config;
         position : ma_atomic_vec3f;
@@ -5193,59 +4910,8 @@ type
         _ownsHeap : ma_bool32;
         _pHeap : pointer;
       end;
-  Pma_spatializer_listener  = ^ma_spatializer_listener;
-  Pma_channel  = ^ma_channel;
-  Pma_vec3f  = ^ma_vec3f;
 (* Const before type ignored *)
 
-  function ma_spatializer_listener_get_heap_size(pConfig:Pma_spatializer_listener_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_init_preallocated(pConfig:Pma_spatializer_listener_config; pHeap:pointer; pListener:Pma_spatializer_listener):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_spatializer_listener_init(pConfig:Pma_spatializer_listener_config; pAllocationCallbacks:Pma_allocation_callbacks; pListener:Pma_spatializer_listener):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_spatializer_listener_uninit(pListener:Pma_spatializer_listener; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  function ma_spatializer_listener_get_channel_map(pListener:Pma_spatializer_listener):Pma_channel;cdecl; external;
-
-  procedure ma_spatializer_listener_set_cone(pListener:Pma_spatializer_listener; innerAngleInRadians:single; outerAngleInRadians:single; outerGain:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_spatializer_listener_get_cone(pListener:Pma_spatializer_listener; pInnerAngleInRadians:Psingle; pOuterAngleInRadians:Psingle; pOuterGain:Psingle);cdecl; external;
-
-  procedure ma_spatializer_listener_set_position(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_get_position(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
-
-  procedure ma_spatializer_listener_set_direction(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_get_direction(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
-
-  procedure ma_spatializer_listener_set_velocity(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_get_velocity(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
-
-  procedure ma_spatializer_listener_set_speed_of_sound(pListener:Pma_spatializer_listener; speedOfSound:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_get_speed_of_sound(pListener:Pma_spatializer_listener):single;cdecl; external;
-
-  procedure ma_spatializer_listener_set_world_up(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_get_world_up(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
-
-  procedure ma_spatializer_listener_set_enabled(pListener:Pma_spatializer_listener; isEnabled:ma_bool32);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_listener_is_enabled(pListener:Pma_spatializer_listener):ma_bool32;cdecl; external;
 
   { Defaults to right. Forward is -1 on the Z axis. In a left handed system, forward is +1 on the Z axis.  }
   { Set to 0 to disable doppler effect.  }
@@ -5253,7 +4919,6 @@ type
   { The minimal scaling factor to apply to channel gains when accounting for the direction of the sound relative to the listener. Must be in the range of 0..1. Smaller values means more aggressive directional panning, larger values means more subtle directional panning.  }
   { When the gain of a channel changes during spatialization, the transition will be linearly interpolated over this number of frames.  }
 
-  type
     ma_spatializer_config = record
         channelsIn : ma_uint32;
         channelsOut : ma_uint32;
@@ -5275,7 +4940,6 @@ type
         gainSmoothTimeInFrames : ma_uint32;
       end;
 
-  function ma_spatializer_config_init(channelsIn:ma_uint32; channelsOut:ma_uint32):ma_spatializer_config;cdecl; external;
 
   { Defaults to right. Forward is -1 on the Z axis. In a left handed system, forward is +1 on the Z axis.  }
   { Set to 0 to disable doppler effect.  }
@@ -5287,7 +4951,6 @@ type
   { An offset of _pHeap. Used by ma_spatializer_process_pcm_frames() to store new channel gains. The number of elements in this array is equal to config.channelsOut.  }
   { Memory management.  }
 
-  type
     ma_spatializer = record
         channelsIn : ma_uint32;
         channelsOut : ma_uint32;
@@ -5316,104 +4979,7 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_spatializer_config  = ^ma_spatializer_config;
-  Pma_spatializer  = ^ma_spatializer;
 (* Const before type ignored *)
-
-  function ma_spatializer_get_heap_size(pConfig:Pma_spatializer_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_init_preallocated(pConfig:Pma_spatializer_config; pHeap:pointer; pSpatializer:Pma_spatializer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_spatializer_init(pConfig:Pma_spatializer_config; pAllocationCallbacks:Pma_allocation_callbacks; pSpatializer:Pma_spatializer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_spatializer_uninit(pSpatializer:Pma_spatializer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_process_pcm_frames(pSpatializer:Pma_spatializer; pListener:Pma_spatializer_listener; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-  function ma_spatializer_set_master_volume(pSpatializer:Pma_spatializer; volume:single):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_master_volume(pSpatializer:Pma_spatializer; pVolume:Psingle):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_input_channels(pSpatializer:Pma_spatializer):ma_uint32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_output_channels(pSpatializer:Pma_spatializer):ma_uint32;cdecl; external;
-
-  procedure ma_spatializer_set_attenuation_model(pSpatializer:Pma_spatializer; attenuationModel:ma_attenuation_model);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_attenuation_model(pSpatializer:Pma_spatializer):ma_attenuation_model;cdecl; external;
-
-  procedure ma_spatializer_set_positioning(pSpatializer:Pma_spatializer; positioning:ma_positioning);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_positioning(pSpatializer:Pma_spatializer):ma_positioning;cdecl; external;
-
-  procedure ma_spatializer_set_rolloff(pSpatializer:Pma_spatializer; rolloff:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_rolloff(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_min_gain(pSpatializer:Pma_spatializer; minGain:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_min_gain(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_max_gain(pSpatializer:Pma_spatializer; maxGain:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_max_gain(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_min_distance(pSpatializer:Pma_spatializer; minDistance:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_min_distance(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_max_distance(pSpatializer:Pma_spatializer; maxDistance:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_max_distance(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_cone(pSpatializer:Pma_spatializer; innerAngleInRadians:single; outerAngleInRadians:single; outerGain:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_spatializer_get_cone(pSpatializer:Pma_spatializer; pInnerAngleInRadians:Psingle; pOuterAngleInRadians:Psingle; pOuterGain:Psingle);cdecl; external;
-
-  procedure ma_spatializer_set_doppler_factor(pSpatializer:Pma_spatializer; dopplerFactor:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_doppler_factor(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_directional_attenuation_factor(pSpatializer:Pma_spatializer; directionalAttenuationFactor:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_directional_attenuation_factor(pSpatializer:Pma_spatializer):single;cdecl; external;
-
-  procedure ma_spatializer_set_position(pSpatializer:Pma_spatializer; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_position(pSpatializer:Pma_spatializer):ma_vec3f;cdecl; external;
-
-  procedure ma_spatializer_set_direction(pSpatializer:Pma_spatializer; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_direction(pSpatializer:Pma_spatializer):ma_vec3f;cdecl; external;
-
-  procedure ma_spatializer_set_velocity(pSpatializer:Pma_spatializer; x:single; y:single; z:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_spatializer_get_velocity(pSpatializer:Pma_spatializer):ma_vec3f;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  procedure ma_spatializer_get_relative_position_and_direction(pSpatializer:Pma_spatializer; pListener:Pma_spatializer_listener; pRelativePos:Pma_vec3f; pRelativeDir:Pma_vec3f);cdecl; external;
 
   {***********************************************************************************************************************************************************
   *************************************************************************************************************************************************************
@@ -5433,7 +4999,6 @@ type
   { The low-pass filter order. Setting this to 0 will disable low-pass filtering.  }
   { 0..1. Defaults to 1. 1 = Half the sampling frequency (Nyquist Frequency), 0.5 = Quarter the sampling frequency (half Nyquest Frequency), etc.  }
 
-  type
     ma_linear_resampler_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -5443,13 +5008,10 @@ type
         lpfNyquistFactor : double;
       end;
 
-  function ma_linear_resampler_config_init(format:ma_format; channels:ma_uint32; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_linear_resampler_config;cdecl; external;
-
   { The previous input frame.  }
   { The next input frame.  }
   { Memory management.  }
 
-  type
     ma_linear_resampler = record
         config : ma_linear_resampler_config;
         inAdvanceInt : ma_uint32;
@@ -5470,46 +5032,8 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_linear_resampler  = ^ma_linear_resampler;
-  Pma_linear_resampler_config  = ^ma_linear_resampler_config;
-  Pma_uint64  = ^ma_uint64;
 (* Const before type ignored *)
 
-  function ma_linear_resampler_get_heap_size(pConfig:Pma_linear_resampler_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_linear_resampler_init_preallocated(pConfig:Pma_linear_resampler_config; pHeap:pointer; pResampler:Pma_linear_resampler):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_linear_resampler_init(pConfig:Pma_linear_resampler_config; pAllocationCallbacks:Pma_allocation_callbacks; pResampler:Pma_linear_resampler):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_linear_resampler_uninit(pResampler:Pma_linear_resampler; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_linear_resampler_process_pcm_frames(pResampler:Pma_linear_resampler; pFramesIn:pointer; pFrameCountIn:Pma_uint64; pFramesOut:pointer; pFrameCountOut:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_linear_resampler_set_rate(pResampler:Pma_linear_resampler; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_result;cdecl; external;
-
-  function ma_linear_resampler_set_rate_ratio(pResampler:Pma_linear_resampler; ratioInOut:single):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_linear_resampler_get_input_latency(pResampler:Pma_linear_resampler):ma_uint64;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_linear_resampler_get_output_latency(pResampler:Pma_linear_resampler):ma_uint64;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_linear_resampler_get_required_input_frame_count(pResampler:Pma_linear_resampler; outputFrameCount:ma_uint64; pInputFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_linear_resampler_get_expected_output_frame_count(pResampler:Pma_linear_resampler; inputFrameCount:ma_uint64; pOutputFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_linear_resampler_reset(pResampler:Pma_linear_resampler):ma_result;cdecl; external;
-
-
-  type
 
     ma_resampling_backend = pointer;
 (* Const before type ignored *)
@@ -5525,10 +5049,6 @@ type
   { Optional. Latency mitigation will be disabled.  }
 (* Const before type ignored *)
   { Optional. Latency mitigation will be disabled.  }
-  Pma_resampler  = ^ma_resampler;
-  Pma_resampler_config  = ^ma_resampler_config;
-  Pma_resampling_backend  = ^ma_resampling_backend;
-  PPma_resampling_backend = ^Pma_resampling_backend;
 
     ma_resampling_backend_vtable = record
         onGetHeapSize : function (pUserData:pointer; pConfig:Pma_resampler_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl;
@@ -5549,6 +5069,23 @@ type
       );
   { Must be either ma_format_f32 or ma_format_s16.  }
   { When set to ma_resample_algorithm_custom, pBackendVTable will be used.  }
+    ma_resampler_config = record
+        format : ma_format;
+        channels : ma_uint32;
+        sampleRateIn : ma_uint32;
+        sampleRateOut : ma_uint32;
+        algorithm : ma_resample_algorithm;
+        pBackendVTable : ^ma_resampling_backend_vtable;
+        pBackendUserData : pointer;
+        linear : record
+            lpfOrder : ma_uint32;
+          end;
+      end;
+
+
+  { State for stock resamplers so we can avoid a malloc. For stock resamplers, pBackend will point here.  }
+  { Memory management.  }
+
     ma_resampler = record
         pBackend : ^ma_resampling_backend;
         pBackendVTable : ^ma_resampling_backend_vtable;
@@ -5564,45 +5101,13 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-    ma_resampler_config = record
-        format : ma_format;
-        channels : ma_uint32;
-        sampleRateIn : ma_uint32;
-        sampleRateOut : ma_uint32;
-        algorithm : ma_resample_algorithm;
-        pBackendVTable : ^ma_resampling_backend_vtable;
-        pBackendUserData : pointer;
-        linear : record
-            lpfOrder : ma_uint32;
-          end;
-      end;
-
-
-  function ma_resampler_config_init(format:ma_format; channels:ma_uint32; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32; algorithm:ma_resample_algorithm):ma_resampler_config;cdecl; external;
-
-  { State for stock resamplers so we can avoid a malloc. For stock resamplers, pBackend will point here.  }
-  { Memory management.  }
-
 (* Const before type ignored *)
-
-  function ma_resampler_get_heap_size(pConfig:Pma_resampler_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resampler_init_preallocated(pConfig:Pma_resampler_config; pHeap:pointer; pResampler:Pma_resampler):ma_result;cdecl; external;
 
   {
   Initializes a new resampler object from a config.
    }
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ma_resampler_init(pConfig:Pma_resampler_config; pAllocationCallbacks:Pma_allocation_callbacks; pResampler:Pma_resampler):ma_result;cdecl; external;
-
-  {
-  Uninitializes a resampler.
-   }
-(* Const before type ignored *)
-  procedure ma_resampler_uninit(pResampler:Pma_resampler; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
   {
   Converts the given input data.
   
@@ -5626,54 +5131,6 @@ type
   It is an error for both [pFrameCountOut] and [pFrameCountIn] to be NULL.
    }
 (* Const before type ignored *)
-  function ma_resampler_process_pcm_frames(pResampler:Pma_resampler; pFramesIn:pointer; pFrameCountIn:Pma_uint64; pFramesOut:pointer; pFrameCountOut:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Sets the input and output sample rate.
-   }
-  function ma_resampler_set_rate(pResampler:Pma_resampler; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_result;cdecl; external;
-
-  {
-  Sets the input and output sample rate as a ratio.
-  
-  The ration is in/out.
-   }
-  function ma_resampler_set_rate_ratio(pResampler:Pma_resampler; ratio:single):ma_result;cdecl; external;
-
-  {
-  Retrieves the latency introduced by the resampler in input frames.
-   }
-(* Const before type ignored *)
-  function ma_resampler_get_input_latency(pResampler:Pma_resampler):ma_uint64;cdecl; external;
-
-  {
-  Retrieves the latency introduced by the resampler in output frames.
-   }
-(* Const before type ignored *)
-  function ma_resampler_get_output_latency(pResampler:Pma_resampler):ma_uint64;cdecl; external;
-
-  {
-  Calculates the number of whole input frames that would need to be read from the client in order to output the specified
-  number of output frames.
-  
-  The returned value does not include cached input frames. It only returns the number of extra frames that would need to be
-  read from the input buffer in order to output the specified number of output frames.
-   }
-(* Const before type ignored *)
-  function ma_resampler_get_required_input_frame_count(pResampler:Pma_resampler; outputFrameCount:ma_uint64; pInputFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Calculates the number of whole output frames that would be output after fully reading and consuming the specified number of
-  input frames.
-   }
-(* Const before type ignored *)
-  function ma_resampler_get_expected_output_frame_count(pResampler:Pma_resampler; inputFrameCount:ma_uint64; pOutputFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Resets the resampler's timer and clears it's internal cache.
-   }
-  function ma_resampler_reset(pResampler:Pma_resampler):ma_result;cdecl; external;
-
   {*************************************************************************************************************************************************************
   
   Channel Conversion
@@ -5684,7 +5141,6 @@ type
   { Simple shuffle. Will use this when all channels are present in both input and output channel maps, but just in a different order.  }
   { Blended based on weights.  }
 
-  type
     ma_channel_conversion_path = (ma_channel_conversion_path_unknown,ma_channel_conversion_path_passthrough,
       ma_channel_conversion_path_mono_out,
       ma_channel_conversion_path_mono_in,ma_channel_conversion_path_shuffle,
@@ -5702,7 +5158,6 @@ type
   { When an output LFE channel is present, but no input LFE, set to true to set the output LFE to the average of all spatial channels (LR, FR, etc.). Ignored when an input LFE is present.  }
   { [in][out]. Only used when mixingMode is set to ma_channel_mix_mode_custom_weights.  }
 
-      psingle = ^single;
     ma_channel_converter_config = record
         format : ma_format;
         channelsIn : ma_uint32;
@@ -5711,19 +5166,15 @@ type
         pChannelMapOut : ^ma_channel;
         mixingMode : ma_channel_mix_mode;
         calculateLFEFromSpatialChannels : ma_bool32;
-        ppWeights : ^psingle;
+        ppWeights : PPsingle;
       end;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_channel_converter_config_init(format:ma_format; channelsIn:ma_uint32; pChannelMapIn:Pma_channel; channelsOut:ma_uint32; pChannelMapOut:Pma_channel; 
-             mixingMode:ma_channel_mix_mode):ma_channel_converter_config;cdecl; external;
 
   { Indexed by output channel index.  }
   { [in][out]  }
   { Memory management.  }
 
-  type
     ma_channel_converter = record
         format : ma_format;
         channelsIn : ma_uint32;
@@ -5735,36 +5186,13 @@ type
         pShuffleTable : ^ma_uint8;
         weights : record
             case longint of
-              0 : ( f32 : ^psingle );
-              1 : ( s16 : ^pma_int32 );
+              0 : ( f32 : PPsingle );
+              1 : ( s16 : PPma_int32 );
             end;
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_channel_converter  = ^ma_channel_converter;
-  Pma_channel_converter_config  = ^ma_channel_converter_config;
 (* Const before type ignored *)
-
-  function ma_channel_converter_get_heap_size(pConfig:Pma_channel_converter_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_channel_converter_init_preallocated(pConfig:Pma_channel_converter_config; pHeap:pointer; pConverter:Pma_channel_converter):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_channel_converter_init(pConfig:Pma_channel_converter_config; pAllocationCallbacks:Pma_allocation_callbacks; pConverter:Pma_channel_converter):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_channel_converter_uninit(pConverter:Pma_channel_converter; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_channel_converter_process_pcm_frames(pConverter:Pma_channel_converter; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_channel_converter_get_input_channel_map(pConverter:Pma_channel_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_channel_converter_get_output_channel_map(pConverter:Pma_channel_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
 
   {*************************************************************************************************************************************************************
   
@@ -5774,7 +5202,6 @@ type
   { When an output LFE channel is present, but no input LFE, set to true to set the output LFE to the average of all spatial channels (LR, FR, etc.). Ignored when an input LFE is present.  }
   { [in][out]. Only used when mixingMode is set to ma_channel_mix_mode_custom_weights.  }
 
-  type
     ma_data_converter_config = record
         formatIn : ma_format;
         formatOut : ma_format;
@@ -5787,15 +5214,10 @@ type
         ditherMode : ma_dither_mode;
         channelMixMode : ma_channel_mix_mode;
         calculateLFEFromSpatialChannels : ma_bool32;
-        ppChannelWeights : ^psingle;
+        ppChannelWeights : PPsingle;
         allowDynamicSampleRate : ma_bool32;
         resampling : ma_resampler_config;
       end;
-
-  function ma_data_converter_config_init_default:ma_data_converter_config;cdecl; external;
-
-  function ma_data_converter_config_init(formatIn:ma_format; formatOut:ma_format; channelsIn:ma_uint32; channelsOut:ma_uint32; sampleRateIn:ma_uint32; 
-             sampleRateOut:ma_uint32):ma_data_converter_config;cdecl; external;
 
   { No conversion.  }
   { Only format conversion.  }
@@ -5804,7 +5226,6 @@ type
   { All conversions, but resample as the first step.  }
   { All conversions, but channels as the first step.  }
 
-  type
     ma_data_converter_execution_path = (ma_data_converter_execution_path_passthrough,
       ma_data_converter_execution_path_format_only,
       ma_data_converter_execution_path_channels_only,
@@ -5834,133 +5255,8 @@ type
         _ownsHeap : ma_bool8;
         _pHeap : pointer;
       end;
-  Pma_data_converter  = ^ma_data_converter;
-  Pma_data_converter_config  = ^ma_data_converter_config;
 (* Const before type ignored *)
 
-  function ma_data_converter_get_heap_size(pConfig:Pma_data_converter_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_init_preallocated(pConfig:Pma_data_converter_config; pHeap:pointer; pConverter:Pma_data_converter):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_data_converter_init(pConfig:Pma_data_converter_config; pAllocationCallbacks:Pma_allocation_callbacks; pConverter:Pma_data_converter):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_data_converter_uninit(pConverter:Pma_data_converter; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_process_pcm_frames(pConverter:Pma_data_converter; pFramesIn:pointer; pFrameCountIn:Pma_uint64; pFramesOut:pointer; pFrameCountOut:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_data_converter_set_rate(pConverter:Pma_data_converter; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_result;cdecl; external;
-
-  function ma_data_converter_set_rate_ratio(pConverter:Pma_data_converter; ratioInOut:single):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_get_input_latency(pConverter:Pma_data_converter):ma_uint64;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_get_output_latency(pConverter:Pma_data_converter):ma_uint64;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_get_required_input_frame_count(pConverter:Pma_data_converter; outputFrameCount:ma_uint64; pInputFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_get_expected_output_frame_count(pConverter:Pma_data_converter; inputFrameCount:ma_uint64; pOutputFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_get_input_channel_map(pConverter:Pma_data_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_converter_get_output_channel_map(pConverter:Pma_data_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
-
-  function ma_data_converter_reset(pConverter:Pma_data_converter):ma_result;cdecl; external;
-
-  {***********************************************************************************************************************************************************
-  
-  Format Conversion
-  
-  *********************************************************************************************************************************************************** }
-(* Const before type ignored *)
-  procedure ma_pcm_u8_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_u8_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_u8_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_u8_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s16_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s16_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s16_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s16_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s24_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s24_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s24_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s24_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s32_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s32_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s32_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_s32_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_f32_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_f32_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_f32_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_f32_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_pcm_convert(pOut:pointer; formatOut:ma_format; pIn:pointer; formatIn:ma_format; sampleCount:ma_uint64; 
-              ditherMode:ma_dither_mode);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_convert_pcm_frames_format(pOut:pointer; formatOut:ma_format; pIn:pointer; formatIn:ma_format; frameCount:ma_uint64; 
-              channels:ma_uint32; ditherMode:ma_dither_mode);cdecl; external;
-
-  {
-  Deinterleaves an interleaved buffer.
-   }
-(* Const before type ignored *)
-  procedure ma_deinterleave_pcm_frames(format:ma_format; channels:ma_uint32; frameCount:ma_uint64; pInterleavedPCMFrames:pointer; ppDeinterleavedPCMFrames:Ppointer);cdecl; external;
-
-  {
-  Interleaves a group of deinterleaved buffers.
-   }
-(* Const before type ignored *)
-  procedure ma_interleave_pcm_frames(format:ma_format; channels:ma_uint32; frameCount:ma_uint64; ppDeinterleavedPCMFrames:Ppointer; pInterleavedPCMFrames:pointer);cdecl; external;
 
   {***********************************************************************************************************************************************************
   
@@ -5970,152 +5266,8 @@ type
   {
   This is used in the shuffle table to indicate that the channel index is undefined and should be ignored.
    }
-  const
-    MA_CHANNEL_INDEX_NULL = 255;    
-  {
-  Retrieves the channel position of the specified channel in the given channel map.
-  
-  The pChannelMap parameter can be null, in which case miniaudio's default channel map will be assumed.
-   }
-(* Const before type ignored *)
-
-  function ma_channel_map_get_channel(pChannelMap:Pma_channel; channelCount:ma_uint32; channelIndex:ma_uint32):ma_channel;cdecl; external;
-
-  {
-  Initializes a blank channel map.
-  
-  When a blank channel map is specified anywhere it indicates that the native channel map should be used.
-   }
-  procedure ma_channel_map_init_blank(pChannelMap:Pma_channel; channels:ma_uint32);cdecl; external;
-
-  {
-  Helper for retrieving a standard channel map.
-  
-  The output channel map buffer must have a capacity of at least `channelMapCap`.
-   }
-  procedure ma_channel_map_init_standard(standardChannelMap:ma_standard_channel_map; pChannelMap:Pma_channel; channelMapCap:size_t; channels:ma_uint32);cdecl; external;
-
-  {
-  Copies a channel map.
-  
-  Both input and output channel map buffers must have a capacity of at at least `channels`.
-   }
-(* Const before type ignored *)
-  procedure ma_channel_map_copy(pOut:Pma_channel; pIn:Pma_channel; channels:ma_uint32);cdecl; external;
-
-  {
-  Copies a channel map if one is specified, otherwise copies the default channel map.
-  
-  The output buffer must have a capacity of at least `channels`. If not NULL, the input channel map must also have a capacity of at least `channels`.
-   }
-(* Const before type ignored *)
-  procedure ma_channel_map_copy_or_default(pOut:Pma_channel; channelMapCapOut:size_t; pIn:Pma_channel; channels:ma_uint32);cdecl; external;
-
-  {
-  Determines whether or not a channel map is valid.
-  
-  A blank channel map is valid (all channels set to MA_CHANNEL_NONE). The way a blank channel map is handled is context specific, but
-  is usually treated as a passthrough.
-  
-  Invalid channel maps:
-    - A channel map with no channels
-    - A channel map with more than one channel and a mono channel
-  
-  The channel map buffer must have a capacity of at least `channels`.
-   }
-(* Const before type ignored *)
-  function ma_channel_map_is_valid(pChannelMap:Pma_channel; channels:ma_uint32):ma_bool32;cdecl; external;
-
-  {
-  Helper for comparing two channel maps for equality.
-  
-  This assumes the channel count is the same between the two.
-  
-  Both channels map buffers must have a capacity of at least `channels`.
-   }
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_channel_map_is_equal(pChannelMapA:Pma_channel; pChannelMapB:Pma_channel; channels:ma_uint32):ma_bool32;cdecl; external;
-
-  {
-  Helper for determining if a channel map is blank (all channels set to MA_CHANNEL_NONE).
-  
-  The channel map buffer must have a capacity of at least `channels`.
-   }
-(* Const before type ignored *)
-  function ma_channel_map_is_blank(pChannelMap:Pma_channel; channels:ma_uint32):ma_bool32;cdecl; external;
-
-  {
-  Helper for determining whether or not a channel is present in the given channel map.
-  
-  The channel map buffer must have a capacity of at least `channels`.
-   }
-(* Const before type ignored *)
-  function ma_channel_map_contains_channel_position(channels:ma_uint32; pChannelMap:Pma_channel; channelPosition:ma_channel):ma_bool32;cdecl; external;
-
-  {
-  Find a channel position in the given channel map. Returns MA_TRUE if the channel is found; MA_FALSE otherwise. The
-  index of the channel is output to `pChannelIndex`.
-  
-  The channel map buffer must have a capacity of at least `channels`.
-   }
-(* Const before type ignored *)
-  function ma_channel_map_find_channel_position(channels:ma_uint32; pChannelMap:Pma_channel; channelPosition:ma_channel; pChannelIndex:Pma_uint32):ma_bool32;cdecl; external;
-
-  {
-  Generates a string representing the given channel map.
-  
-  This is for printing and debugging purposes, not serialization/deserialization.
-  
-  Returns the length of the string, not including the null terminator.
-   }
-(* Const before type ignored *)
-  function ma_channel_map_to_string(pChannelMap:Pma_channel; channels:ma_uint32; pBufferOut:Pchar; bufferCap:size_t):size_t;cdecl; external;
-
-  {
-  Retrieves a human readable version of a channel position.
-   }
-(* Const before type ignored *)
-  function ma_channel_position_to_string(channel:ma_channel):pchar;cdecl; external;
-
-  {***********************************************************************************************************************************************************
-  
-  Conversion Helpers
-  
-  *********************************************************************************************************************************************************** }
-  {
-  High-level helper for doing a full format conversion in one go. Returns the number of output frames. Call this with pOut set to NULL to
-  determine the required size of the output buffer. frameCountOut should be set to the capacity of pOut. If pOut is NULL, frameCountOut is
-  ignored.
-  
-  A return value of 0 indicates an error.
-  
-  This function is useful for one-off bulk conversions, but if you're streaming data you should use the ma_data_converter APIs instead.
-   }
-(* Const before type ignored *)
-  function ma_convert_frames(pOut:pointer; frameCountOut:ma_uint64; formatOut:ma_format; channelsOut:ma_uint32; sampleRateOut:ma_uint32; 
-             pIn:pointer; frameCountIn:ma_uint64; formatIn:ma_format; channelsIn:ma_uint32; sampleRateIn:ma_uint32):ma_uint64;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_convert_frames_ex(pOut:pointer; frameCountOut:ma_uint64; pIn:pointer; frameCountIn:ma_uint64; pConfig:Pma_data_converter_config):ma_uint64;cdecl; external;
-
-  {***********************************************************************************************************************************************************
-  
-  Data Source
-  
-  *********************************************************************************************************************************************************** }
-
-  type
     ma_data_source = pointer;
 
-  const
-    MA_DATA_SOURCE_SELF_MANAGED_RANGE_AND_LOOP_POINT = $00000001;    
-
-  type
-    Pma_data_source  = ^ma_data_source;
-    PPma_data_source  = ^Pma_data_source;
-    Pma_data_source_config  = ^ma_data_source_config;
     ma_data_source_vtable = record
         onRead : function (pDataSource:Pma_data_source; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl;
         onSeek : function (pDataSource:Pma_data_source; frameIndex:ma_uint64):ma_result;cdecl;
@@ -6134,7 +5286,6 @@ type
         vtable : ^ma_data_source_vtable;
       end;
 
-  function ma_data_source_config_init:ma_data_source_config;cdecl; external;
 
 (* Const before type ignored *)
   { Set to -1 for unranged (default).  }
@@ -6143,8 +5294,7 @@ type
   { When non-NULL, the data source being initialized will act as a proxy and will route all operations to pCurrent. Used in conjunction with pNext/onGetNext for seamless chaining.  }
   { When set to NULL, onGetNext will be used.  }
   { Will be used when pNext is NULL. If both are NULL, no next will be used.  }
-
-  type
+  {_Alignas(4) }
     ma_data_source_base = record
         vtable : ^ma_data_source_vtable;
         rangeBegInFrames : ma_uint64;
@@ -6158,63 +5308,7 @@ type
       end;
 (* Const before type ignored *)
 
-  function ma_data_source_init(pConfig:Pma_data_source_config; pDataSource:Pma_data_source):ma_result;cdecl; external;
 
-  procedure ma_data_source_uninit(pDataSource:Pma_data_source);cdecl; external;
-
-  function ma_data_source_read_pcm_frames(pDataSource:Pma_data_source; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  { Must support pFramesOut = NULL in which case a forward seek should be performed.  }
-  function ma_data_source_seek_pcm_frames(pDataSource:Pma_data_source; frameCount:ma_uint64; pFramesSeeked:Pma_uint64):ma_result;cdecl; external;
-
-  { Can only seek forward. Equivalent to ma_data_source_read_pcm_frames(pDataSource, NULL, frameCount, &framesRead);  }
-  function ma_data_source_seek_to_pcm_frame(pDataSource:Pma_data_source; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_data_source_get_data_format(pDataSource:Pma_data_source; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
-             channelMapCap:size_t):ma_result;cdecl; external;
-
-  function ma_data_source_get_cursor_in_pcm_frames(pDataSource:Pma_data_source; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_data_source_get_length_in_pcm_frames(pDataSource:Pma_data_source; pLength:Pma_uint64):ma_result;cdecl; external;
-
-  { Returns MA_NOT_IMPLEMENTED if the length is unknown or cannot be determined. Decoders can return this.  }
-  function ma_data_source_get_cursor_in_seconds(pDataSource:Pma_data_source; pCursor:Psingle):ma_result;cdecl; external;
-
-  function ma_data_source_get_length_in_seconds(pDataSource:Pma_data_source; pLength:Psingle):ma_result;cdecl; external;
-
-  function ma_data_source_set_looping(pDataSource:Pma_data_source; isLooping:ma_bool32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_source_is_looping(pDataSource:Pma_data_source):ma_bool32;cdecl; external;
-
-  function ma_data_source_set_range_in_pcm_frames(pDataSource:Pma_data_source; rangeBegInFrames:ma_uint64; rangeEndInFrames:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_data_source_get_range_in_pcm_frames(pDataSource:Pma_data_source; pRangeBegInFrames:Pma_uint64; pRangeEndInFrames:Pma_uint64);cdecl; external;
-
-  function ma_data_source_set_loop_point_in_pcm_frames(pDataSource:Pma_data_source; loopBegInFrames:ma_uint64; loopEndInFrames:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_data_source_get_loop_point_in_pcm_frames(pDataSource:Pma_data_source; pLoopBegInFrames:Pma_uint64; pLoopEndInFrames:Pma_uint64);cdecl; external;
-
-  function ma_data_source_set_current(pDataSource:Pma_data_source; pCurrentDataSource:Pma_data_source):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_source_get_current(pDataSource:Pma_data_source):pma_data_source;cdecl; external;
-
-  function ma_data_source_set_next(pDataSource:Pma_data_source; pNextDataSource:Pma_data_source):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_source_get_next(pDataSource:Pma_data_source):pma_data_source;cdecl; external;
-
-  function ma_data_source_set_next_callback(pDataSource:Pma_data_source; onGetNext:ma_data_source_get_next_proc):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_data_source_get_next_callback(pDataSource:Pma_data_source):ma_data_source_get_next_proc;cdecl; external;
-
-(* Const before type ignored *)
-
-  type
     ma_audio_buffer_ref = record
         ds : ma_data_source_base;
         format : ma_format;
@@ -6224,41 +5318,11 @@ type
         sizeInFrames : ma_uint64;
         pData : pointer;
       end;
-  Pma_audio_buffer_ref  = ^ma_audio_buffer_ref;
 (* Const before type ignored *)
-
-  function ma_audio_buffer_ref_init(format:ma_format; channels:ma_uint32; pData:pointer; sizeInFrames:ma_uint64; pAudioBufferRef:Pma_audio_buffer_ref):ma_result;cdecl; external;
-
-  procedure ma_audio_buffer_ref_uninit(pAudioBufferRef:Pma_audio_buffer_ref);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_ref_set_data(pAudioBufferRef:Pma_audio_buffer_ref; pData:pointer; sizeInFrames:ma_uint64):ma_result;cdecl; external;
-
-  function ma_audio_buffer_ref_read_pcm_frames(pAudioBufferRef:Pma_audio_buffer_ref; pFramesOut:pointer; frameCount:ma_uint64; loop:ma_bool32):ma_uint64;cdecl; external;
-
-  function ma_audio_buffer_ref_seek_to_pcm_frame(pAudioBufferRef:Pma_audio_buffer_ref; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_audio_buffer_ref_map(pAudioBufferRef:Pma_audio_buffer_ref; ppFramesOut:Ppointer; pFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_audio_buffer_ref_unmap(pAudioBufferRef:Pma_audio_buffer_ref; frameCount:ma_uint64):ma_result;cdecl; external;
-
-  { Returns MA_AT_END if the end has been reached. This should be considered successful.  }
-(* Const before type ignored *)
-  function ma_audio_buffer_ref_at_end(pAudioBufferRef:Pma_audio_buffer_ref):ma_bool32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_ref_get_cursor_in_pcm_frames(pAudioBufferRef:Pma_audio_buffer_ref; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_ref_get_length_in_pcm_frames(pAudioBufferRef:Pma_audio_buffer_ref; pLength:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_ref_get_available_frames(pAudioBufferRef:Pma_audio_buffer_ref; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
 
 (* Const before type ignored *)
   { If set to NULL, will allocate a block of memory for you.  }
 
-  type
     ma_audio_buffer_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -6270,56 +5334,17 @@ type
 (* Const before type ignored *)
 (* Const before type ignored *)
 
-  function ma_audio_buffer_config_init(format:ma_format; channels:ma_uint32; sizeInFrames:ma_uint64; pData:pointer; pAllocationCallbacks:Pma_allocation_callbacks):ma_audio_buffer_config;cdecl; external;
-
   { Used to control whether or not miniaudio owns the data buffer. If set to true, pData will be freed in ma_audio_buffer_uninit().  }
   { For allocating a buffer with the memory located directly after the other memory of the structure.  }
 
-  type
     ma_audio_buffer = record
         ref : ma_audio_buffer_ref;
         allocationCallbacks : ma_allocation_callbacks;
         ownsData : ma_bool32;
         _pExtraData : array[0..0] of ma_uint8;
       end;
-  Pma_audio_buffer  = ^ma_audio_buffer;
-  Pma_audio_buffer_config  = ^ma_audio_buffer_config;
-  PPma_audio_buffer = ^Pma_audio_buffer;
 (* Const before type ignored *)
 
-  function ma_audio_buffer_init(pConfig:Pma_audio_buffer_config; pAudioBuffer:Pma_audio_buffer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_init_copy(pConfig:Pma_audio_buffer_config; pAudioBuffer:Pma_audio_buffer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_alloc_and_init(pConfig:Pma_audio_buffer_config; ppAudioBuffer:PPma_audio_buffer):ma_result;cdecl; external;
-
-  { Always copies the data. Doesn't make sense to use this otherwise. Use ma_audio_buffer_uninit_and_free() to uninit.  }
-  procedure ma_audio_buffer_uninit(pAudioBuffer:Pma_audio_buffer);cdecl; external;
-
-  procedure ma_audio_buffer_uninit_and_free(pAudioBuffer:Pma_audio_buffer);cdecl; external;
-
-  function ma_audio_buffer_read_pcm_frames(pAudioBuffer:Pma_audio_buffer; pFramesOut:pointer; frameCount:ma_uint64; loop:ma_bool32):ma_uint64;cdecl; external;
-
-  function ma_audio_buffer_seek_to_pcm_frame(pAudioBuffer:Pma_audio_buffer; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_audio_buffer_map(pAudioBuffer:Pma_audio_buffer; ppFramesOut:Ppointer; pFrameCount:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_audio_buffer_unmap(pAudioBuffer:Pma_audio_buffer; frameCount:ma_uint64):ma_result;cdecl; external;
-
-  { Returns MA_AT_END if the end has been reached. This should be considered successful.  }
-(* Const before type ignored *)
-  function ma_audio_buffer_at_end(pAudioBuffer:Pma_audio_buffer):ma_bool32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_get_cursor_in_pcm_frames(pAudioBuffer:Pma_audio_buffer; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_get_length_in_pcm_frames(pAudioBuffer:Pma_audio_buffer; pLength:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_audio_buffer_get_available_frames(pAudioBuffer:Pma_audio_buffer; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
 
   {
   Paged Audio Buffer
@@ -6333,17 +5358,14 @@ type
   thread at a time can read and seek.
    }
 
-  type
-    ma_paged_audio_buffer_page = record
+  {_Alignas(MA_SIZEOF_PTR) }    ma_paged_audio_buffer_page = record
         pNext : ^ma_paged_audio_buffer_page;
         sizeInFrames : ma_uint64;
         pAudioData : array[0..0] of ma_uint8;
       end;
-  Pma_paged_audio_buffer_page  = ^ma_paged_audio_buffer_page;
-  PPma_paged_audio_buffer_page  = ^Pma_paged_audio_buffer_page;
 
   { Dummy head for the lock-free algorithm. Always has a size of 0.  }
-  { Never null. Initially set to &head.  }
+  {_Alignas(MA_SIZEOF_PTR) }  { Never null. Initially set to &head.  }
 
     ma_paged_audio_buffer_data = record
         format : ma_format;
@@ -6351,45 +5373,19 @@ type
         head : ma_paged_audio_buffer_page;
         pTail : ^ma_paged_audio_buffer_page;
       end;
-  Pma_paged_audio_buffer_data  = ^ma_paged_audio_buffer_data;
-
-  function ma_paged_audio_buffer_data_init(format:ma_format; channels:ma_uint32; pData:Pma_paged_audio_buffer_data):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_paged_audio_buffer_data_uninit(pData:Pma_paged_audio_buffer_data; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  function ma_paged_audio_buffer_data_get_head(pData:Pma_paged_audio_buffer_data):Pma_paged_audio_buffer_page;cdecl; external;
-
-  function ma_paged_audio_buffer_data_get_tail(pData:Pma_paged_audio_buffer_data):Pma_paged_audio_buffer_page;cdecl; external;
-
-  function ma_paged_audio_buffer_data_get_length_in_pcm_frames(pData:Pma_paged_audio_buffer_data; pLength:Pma_uint64):ma_result;cdecl; external;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ma_paged_audio_buffer_data_allocate_page(pData:Pma_paged_audio_buffer_data; pageSizeInFrames:ma_uint64; pInitialData:pointer; pAllocationCallbacks:Pma_allocation_callbacks; ppPage:PPma_paged_audio_buffer_page):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_paged_audio_buffer_data_free_page(pData:Pma_paged_audio_buffer_data; pPage:Pma_paged_audio_buffer_page; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
-
-  function ma_paged_audio_buffer_data_append_page(pData:Pma_paged_audio_buffer_data; pPage:Pma_paged_audio_buffer_page):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_paged_audio_buffer_data_allocate_and_append_page(pData:Pma_paged_audio_buffer_data; pageSizeInFrames:ma_uint32; pInitialData:pointer; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
-
   { Must not be null.  }
 
-  type
     ma_paged_audio_buffer_config = record
         pData : ^ma_paged_audio_buffer_data;
       end;
 
-  function ma_paged_audio_buffer_config_init(pData:Pma_paged_audio_buffer_data):ma_paged_audio_buffer_config;cdecl; external;
 
   { Audio data is read from here. Cannot be null.  }
   { Relative to the current page.  }
 
-  type
     ma_paged_audio_buffer = record
         ds : ma_data_source_base;
         pData : ^ma_paged_audio_buffer_data;
@@ -6397,34 +5393,18 @@ type
         relativeCursor : ma_uint64;
         absoluteCursor : ma_uint64;
       end;
-  Pma_paged_audio_buffer  = ^ma_paged_audio_buffer;
-  Pma_paged_audio_buffer_config  = ^ma_paged_audio_buffer_config;
 (* Const before type ignored *)
-
-  function ma_paged_audio_buffer_init(pConfig:Pma_paged_audio_buffer_config; pPagedAudioBuffer:Pma_paged_audio_buffer):ma_result;cdecl; external;
-
-  procedure ma_paged_audio_buffer_uninit(pPagedAudioBuffer:Pma_paged_audio_buffer);cdecl; external;
-
-  function ma_paged_audio_buffer_read_pcm_frames(pPagedAudioBuffer:Pma_paged_audio_buffer; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  { Returns MA_AT_END if no more pages available.  }
-  function ma_paged_audio_buffer_seek_to_pcm_frame(pPagedAudioBuffer:Pma_paged_audio_buffer; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_paged_audio_buffer_get_cursor_in_pcm_frames(pPagedAudioBuffer:Pma_paged_audio_buffer; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_paged_audio_buffer_get_length_in_pcm_frames(pPagedAudioBuffer:Pma_paged_audio_buffer; pLength:Pma_uint64):ma_result;cdecl; external;
 
   {***********************************************************************************************************************************************************
   
   Ring Buffer
   
   *********************************************************************************************************************************************************** }
-  { Most significant bit is the loop flag. Lower 31 bits contains the actual offset in bytes. Must be used atomically.  }
-  { Most significant bit is the loop flag. Lower 31 bits contains the actual offset in bytes. Must be used atomically.  }
+  {_Alignas(4) }  { Most significant bit is the loop flag. Lower 31 bits contains the actual offset in bytes. Must be used atomically.  }
+  {_Alignas(4) }  { Most significant bit is the loop flag. Lower 31 bits contains the actual offset in bytes. Must be used atomically.  }
   { Used to know whether or not miniaudio is responsible for free()-ing the buffer.  }
   { When set, clears the acquired write buffer before returning from ma_rb_acquire_write().  }
 
-  type
     ma_rb = record
         pBuffer : pointer;
         subbufferSizeInBytes : ma_uint32;
@@ -6436,49 +5416,10 @@ type
         clearOnWriteAcquire : ma_bool8;
         allocationCallbacks : ma_allocation_callbacks;
       end;
-  Pma_rb  = ^ma_rb;
 (* Const before type ignored *)
-
-  function ma_rb_init_ex(subbufferSizeInBytes:size_t; subbufferCount:size_t; subbufferStrideInBytes:size_t; pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; 
-             pRB:Pma_rb):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_rb_init(bufferSizeInBytes:size_t; pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; pRB:Pma_rb):ma_result;cdecl; external;
-
-  procedure ma_rb_uninit(pRB:Pma_rb);cdecl; external;
-
-  procedure ma_rb_reset(pRB:Pma_rb);cdecl; external;
-
-  function ma_rb_acquire_read(pRB:Pma_rb; pSizeInBytes:Psize_t; ppBufferOut:Ppointer):ma_result;cdecl; external;
-
-  function ma_rb_commit_read(pRB:Pma_rb; sizeInBytes:size_t):ma_result;cdecl; external;
-
-  function ma_rb_acquire_write(pRB:Pma_rb; pSizeInBytes:Psize_t; ppBufferOut:Ppointer):ma_result;cdecl; external;
-
-  function ma_rb_commit_write(pRB:Pma_rb; sizeInBytes:size_t):ma_result;cdecl; external;
-
-  function ma_rb_seek_read(pRB:Pma_rb; offsetInBytes:size_t):ma_result;cdecl; external;
-
-  function ma_rb_seek_write(pRB:Pma_rb; offsetInBytes:size_t):ma_result;cdecl; external;
-
-  function ma_rb_pointer_distance(pRB:Pma_rb):ma_int32;cdecl; external;
-
-  { Returns the distance between the write pointer and the read pointer. Should never be negative for a correct program. Will return the number of bytes that can be read before the read pointer hits the write pointer.  }
-  function ma_rb_available_read(pRB:Pma_rb):ma_uint32;cdecl; external;
-
-  function ma_rb_available_write(pRB:Pma_rb):ma_uint32;cdecl; external;
-
-  function ma_rb_get_subbuffer_size(pRB:Pma_rb):size_t;cdecl; external;
-
-  function ma_rb_get_subbuffer_stride(pRB:Pma_rb):size_t;cdecl; external;
-
-  function ma_rb_get_subbuffer_offset(pRB:Pma_rb; subbufferIndex:size_t):size_t;cdecl; external;
-
-  function ma_rb_get_subbuffer_ptr(pRB:Pma_rb; subbufferIndex:size_t; pBuffer:pointer):pointer;cdecl; external;
 
   { Not required for the ring buffer itself, but useful for associating the data with some sample rate, particularly for data sources.  }
 
-  type
     ma_pcm_rb = record
         ds : ma_data_source_base;
         rb : ma_rb;
@@ -6486,57 +5427,8 @@ type
         channels : ma_uint32;
         sampleRate : ma_uint32;
       end;
-  Pma_pcm_rb  = ^ma_pcm_rb;
 (* Const before type ignored *)
 
-  function ma_pcm_rb_init_ex(format:ma_format; channels:ma_uint32; subbufferSizeInFrames:ma_uint32; subbufferCount:ma_uint32; subbufferStrideInFrames:ma_uint32; 
-             pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; pRB:Pma_pcm_rb):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_pcm_rb_init(format:ma_format; channels:ma_uint32; bufferSizeInFrames:ma_uint32; pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; 
-             pRB:Pma_pcm_rb):ma_result;cdecl; external;
-
-  procedure ma_pcm_rb_uninit(pRB:Pma_pcm_rb);cdecl; external;
-
-  procedure ma_pcm_rb_reset(pRB:Pma_pcm_rb);cdecl; external;
-
-  function ma_pcm_rb_acquire_read(pRB:Pma_pcm_rb; pSizeInFrames:Pma_uint32; ppBufferOut:Ppointer):ma_result;cdecl; external;
-
-  function ma_pcm_rb_commit_read(pRB:Pma_pcm_rb; sizeInFrames:ma_uint32):ma_result;cdecl; external;
-
-  function ma_pcm_rb_acquire_write(pRB:Pma_pcm_rb; pSizeInFrames:Pma_uint32; ppBufferOut:Ppointer):ma_result;cdecl; external;
-
-  function ma_pcm_rb_commit_write(pRB:Pma_pcm_rb; sizeInFrames:ma_uint32):ma_result;cdecl; external;
-
-  function ma_pcm_rb_seek_read(pRB:Pma_pcm_rb; offsetInFrames:ma_uint32):ma_result;cdecl; external;
-
-  function ma_pcm_rb_seek_write(pRB:Pma_pcm_rb; offsetInFrames:ma_uint32):ma_result;cdecl; external;
-
-  function ma_pcm_rb_pointer_distance(pRB:Pma_pcm_rb):ma_int32;cdecl; external;
-
-  { Return value is in frames.  }
-  function ma_pcm_rb_available_read(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
-
-  function ma_pcm_rb_available_write(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
-
-  function ma_pcm_rb_get_subbuffer_size(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
-
-  function ma_pcm_rb_get_subbuffer_stride(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
-
-  function ma_pcm_rb_get_subbuffer_offset(pRB:Pma_pcm_rb; subbufferIndex:ma_uint32):ma_uint32;cdecl; external;
-
-  function ma_pcm_rb_get_subbuffer_ptr(pRB:Pma_pcm_rb; subbufferIndex:ma_uint32; pBuffer:pointer):pointer;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_pcm_rb_get_format(pRB:Pma_pcm_rb):ma_format;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_pcm_rb_get_channels(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_pcm_rb_get_sample_rate(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
-
-  procedure ma_pcm_rb_set_sample_rate(pRB:Pma_pcm_rb; sampleRate:ma_uint32);cdecl; external;
 
   {
   The idea of the duplex ring buffer is to act as the intermediary buffer when running two asynchronous devices in a duplex set up. The
@@ -6549,213 +5441,23 @@ type
   in frames. The internal sample rate of the capture device is also needed in order to calculate the size.
    }
 
-  type
     ma_duplex_rb = record
         rb : ma_pcm_rb;
       end;
-  Pma_duplex_rb  = ^ma_duplex_rb;
-  Pma_spinlock  = ^ma_spinlock;
 (* Const before type ignored *)
 
-  function ma_duplex_rb_init(captureFormat:ma_format; captureChannels:ma_uint32; sampleRate:ma_uint32; captureInternalSampleRate:ma_uint32; captureInternalPeriodSizeInFrames:ma_uint32; 
-             pAllocationCallbacks:Pma_allocation_callbacks; pRB:Pma_duplex_rb):ma_result;cdecl; external;
-
-  function ma_duplex_rb_uninit(pRB:Pma_duplex_rb):ma_result;cdecl; external;
-
-  {***********************************************************************************************************************************************************
-  
-  Miscellaneous Helpers
-  
-  *********************************************************************************************************************************************************** }
-  {
-  Retrieves a human readable description of the given result code.
-   }
-(* Const before type ignored *)
-  function ma_result_description(result:ma_result):pchar;cdecl; external;
-
-  {
-  malloc()
-   }
-(* Const before type ignored *)
-  function ma_malloc(sz:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
-
-  {
-  calloc()
-   }
-(* Const before type ignored *)
-  function ma_calloc(sz:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
-
-  {
-  realloc()
-   }
-(* Const before type ignored *)
-  function ma_realloc(p:pointer; sz:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
-
-  {
-  free()
-   }
-(* Const before type ignored *)
-  procedure ma_free(p:pointer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  {
-  Performs an aligned malloc, with the assumption that the alignment is a power of 2.
-   }
-(* Const before type ignored *)
-  function ma_aligned_malloc(sz:size_t; alignment:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
-
-  {
-  Free's an aligned malloc'd buffer.
-   }
-(* Const before type ignored *)
-  procedure ma_aligned_free(p:pointer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  {
-  Retrieves a friendly name for a format.
-   }
-(* Const before type ignored *)
-  function ma_get_format_name(format:ma_format):pchar;cdecl; external;
-
-  {
-  Blends two frames in floating point format.
-   }
-  procedure ma_blend_f32(pOut:Psingle; pInA:Psingle; pInB:Psingle; factor:single; channels:ma_uint32);cdecl; external;
-
-  {
-  Retrieves the size of a sample in bytes for the given format.
-  
-  This API is efficient and is implemented using a lookup table.
-  
-  Thread Safety: SAFE
-    This API is pure.
-   }
-  function ma_get_bytes_per_sample(format:ma_format):ma_uint32;cdecl; external;
-
-  {
-  Converts a log level to a string.
-   }
-(* Const before type ignored *)
-  function ma_log_level_to_string(logLevel:ma_uint32):pchar;cdecl; external;
-
-  {***********************************************************************************************************************************************************
-  
-  Synchronization
-  
-  *********************************************************************************************************************************************************** }
-  {
-  Locks a spinlock.
-   }
-  function ma_spinlock_lock(pSpinlock:Pma_spinlock):ma_result;cdecl; external;
-
-  {
-  Locks a spinlock, but does not yield() when looping.
-   }
-  function ma_spinlock_lock_noyield(pSpinlock:Pma_spinlock):ma_result;cdecl; external;
-
-  {
-  Unlocks a spinlock.
-   }
-  function ma_spinlock_unlock(pSpinlock:Pma_spinlock):ma_result;cdecl; external;
-
-{$ifndef MA_NO_THREADING}
-  {
-  Creates a mutex.
-  
-  A mutex must be created from a valid context. A mutex is initially unlocked.
-   }
-
-  type
-  Pma_mutex  = ^ma_mutex;
-  Pma_event  = ^ma_event;
-
-  function ma_mutex_init(pMutex:Pma_mutex):ma_result;cdecl; external;
-
-  {
-  Deletes a mutex.
-   }
-  procedure ma_mutex_uninit(pMutex:Pma_mutex);cdecl; external;
-
-  {
-  Locks a mutex with an infinite timeout.
-   }
-  procedure ma_mutex_lock(pMutex:Pma_mutex);cdecl; external;
-
-  {
-  Unlocks a mutex.
-   }
-  procedure ma_mutex_unlock(pMutex:Pma_mutex);cdecl; external;
-
-  {
-  Initializes an auto-reset event.
-   }
-  function ma_event_init(pEvent:Pma_event):ma_result;cdecl; external;
-
-  {
-  Uninitializes an auto-reset event.
-   }
-  procedure ma_event_uninit(pEvent:Pma_event);cdecl; external;
-
-  {
-  Waits for the specified auto-reset event to become signalled.
-   }
-  function ma_event_wait(pEvent:Pma_event):ma_result;cdecl; external;
-
-  {
-  Signals the specified auto-reset event.
-   }
-  function ma_event_signal(pEvent:Pma_event):ma_result;cdecl; external;
-
-{$endif}
-  { MA_NO_THREADING  }
-  {
-  Fence
-  =====
-  This locks while the counter is larger than 0. Counter can be incremented and decremented by any
-  thread, but care needs to be taken when waiting. It is possible for one thread to acquire the
-  fence just as another thread returns from ma_fence_wait().
-  
-  The idea behind a fence is to allow you to wait for a group of operations to complete. When an
-  operation starts, the counter is incremented which locks the fence. When the operation completes,
-  the fence will be released which decrements the counter. ma_fence_wait() will block until the
-  counter hits zero.
-  
-  If threading is disabled, ma_fence_wait() will spin on the counter.
-   }
-{$ifndef MA_NO_THREADING}
-{$endif}
-
-  type
     ma_fence = record
         e : ma_event;
         counter : ma_uint32;
       end;
-  Pma_fence  = ^ma_fence;
 
-  function ma_fence_init(pFence:Pma_fence):ma_result;cdecl; external;
 
-  procedure ma_fence_uninit(pFence:Pma_fence);cdecl; external;
-
-  function ma_fence_acquire(pFence:Pma_fence):ma_result;cdecl; external;
-
-  { Increment counter.  }
-  function ma_fence_release(pFence:Pma_fence):ma_result;cdecl; external;
-
-  { Decrement counter.  }
-  function ma_fence_wait(pFence:Pma_fence):ma_result;cdecl; external;
-
-  { Wait for counter to reach 0.  }
-  {
-  Notification callback for asynchronous operations.
-   }
-
-  type
     ma_async_notification = pointer;
-  Pma_async_notification  = ^ma_async_notification;
 
     ma_async_notification_callbacks = record
         onSignal : procedure (pNotification:Pma_async_notification);cdecl;
       end;
 
-  function ma_async_notification_signal(pNotification:Pma_async_notification):ma_result;cdecl; external;
 
   {
   Simple polling notification.
@@ -6763,40 +5465,22 @@ type
   This just sets a variable when the notification has been signalled which is then polled with ma_async_notification_poll_is_signalled()
    }
 
-  type
     ma_async_notification_poll = record
         cb : ma_async_notification_callbacks;
         signalled : ma_bool32;
       end;
-    Pma_async_notification_poll  = ^ma_async_notification_poll;
 
-  function ma_async_notification_poll_init(pNotificationPoll:Pma_async_notification_poll):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_async_notification_poll_is_signalled(pNotificationPoll:Pma_async_notification_poll):ma_bool32;cdecl; external;
 
   {
   Event Notification
   
   This uses an ma_event. If threading is disabled (MA_NO_THREADING), initialization will fail.
    }
-{$ifndef MA_NO_THREADING}
-{$endif}
 
-  type
     ma_async_notification_event = record
         cb : ma_async_notification_callbacks;
         e : ma_event;
       end;
-      Pma_async_notification_event  = ^ma_async_notification_event;
-
-  function ma_async_notification_event_init(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
-
-  function ma_async_notification_event_uninit(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
-
-  function ma_async_notification_event_wait(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
-
-  function ma_async_notification_event_signal(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
 
   {***********************************************************************************************************************************************************
   
@@ -6821,16 +5505,13 @@ type
    }
   { The number of slots to make available.  }
 
-  type
     ma_slot_allocator_config = record
         capacity : ma_uint32;
       end;
 
-  function ma_slot_allocator_config_init(capacity:ma_uint32):ma_slot_allocator_config;cdecl; external;
 
-  { Must be used atomically because the allocation and freeing routines need to make copies of this which must never be optimized away by the compiler.  }
+  {_Alignas(4) }  { Must be used atomically because the allocation and freeing routines need to make copies of this which must never be optimized away by the compiler.  }
 
-  type
     ma_slot_allocator_group = record
         bitfield : ma_uint32;
       end;
@@ -6847,34 +5528,14 @@ type
         _ownsHeap : ma_bool32;
         _pHeap : pointer;
       end;
-  Pma_slot_allocator_config  = ^ma_slot_allocator_config;
-  Pma_slot_allocator  = ^ma_slot_allocator;
 (* Const before type ignored *)
 
-  function ma_slot_allocator_get_heap_size(pConfig:Pma_slot_allocator_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_slot_allocator_init_preallocated(pConfig:Pma_slot_allocator_config; pHeap:pointer; pAllocator:Pma_slot_allocator):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_slot_allocator_init(pConfig:Pma_slot_allocator_config; pAllocationCallbacks:Pma_allocation_callbacks; pAllocator:Pma_slot_allocator):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_slot_allocator_uninit(pAllocator:Pma_slot_allocator; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  function ma_slot_allocator_alloc(pAllocator:Pma_slot_allocator; pSlot:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_slot_allocator_free(pAllocator:Pma_slot_allocator; slot:ma_uint64):ma_result;cdecl; external;
-
-
-  type
   {
   Callback for processing a job. Each job type will have their own processing callback which will be
   called by ma_job_process().
    }
 
-  Pma_job  = ^ma_job;
     ma_job_proc = function (pJob:Pma_job):ma_result;cdecl;
   { When a job type is added here an callback needs to be added go "g_jobVTable" in the implementation section.  }
   { Miscellaneous.  }
@@ -6897,7 +5558,7 @@ type
   { Job type.  }
   { Index into a ma_slot_allocator.  }
   { 8 bytes. We encode the job code into the slot allocation data to save space.  }
-  { refcount + slot for the next item. Does not include the job code.  }
+  {_Alignas(8) }  { refcount + slot for the next item. Does not include the job code.  }
   { Execution order. Used to create a data dependency and ensure a job is executed in order. Usage is contextual depending on the job type.  }
   { Miscellaneous.  }
   { Resource Manager  }
@@ -6932,16 +5593,16 @@ type
         data : record
             case longint of
               0 : ( custom : record
-                  proc: ma_job_proc;
-                  data0: ma_uintptr;
-                  data1: ma_uintptr;
+                  proc : ma_job_proc;
+                  data0 : ma_uintptr;
+                  data1 : ma_uintptr;
                 end );
               1 : ( resourceManager : record
                   case longint of
                     0 : ( loadDataBufferNode : record
                         pResourceManager : pointer;
                         pDataBufferNode : pointer;
-                        pFilePath : pchar;
+                        pFilePath : ^char;
                         pFilePathW : ^wchar_t;
                         flags : ma_uint32;
                         pInitNotification : ^ma_async_notification;
@@ -6981,7 +5642,7 @@ type
                       end );
                     5 : ( loadDataStream : record
                         pDataStream : pointer;
-                        pFilePath : pchar;
+                        pFilePath : ^char;
                         pFilePathW : ^wchar_t;
                         initialSeekPoint : ma_uint64;
                         pInitNotification : ^ma_async_notification;
@@ -7015,9 +5676,6 @@ type
       end;
 
 
-  function ma_job_init(code:ma_uint16):ma_job;cdecl; external;
-
-  function ma_job_process(pJob:Pma_job):ma_result;cdecl; external;
 
   {
   When set, ma_job_queue_next() will not wait and no semaphore will be signaled in
@@ -7026,7 +5684,6 @@ type
   This flag should always be used for platforms that do not support multithreading.
    }
 
-  type
     ma_job_queue_flags = (MA_JOB_QUEUE_FLAG_NON_BLOCKING := $00000001
       );
   { The maximum number of jobs that can fit in the queue at a time.  }
@@ -7036,20 +5693,13 @@ type
         capacity : ma_uint32;
       end;
 
-  function ma_job_queue_config_init(flags:ma_uint32; capacity:ma_uint32):ma_job_queue_config;cdecl; external;
 
   { Flags passed in at initialization time.  }
   { The maximum number of jobs that can fit in the queue at a time. Set by the config.  }
-  { The first item in the list. Required for removing from the top of the list.  }
-  { The last item in the list. Required for appending to the end of the list.  }
-{$ifndef MA_NO_THREADING}
-  { Only used when MA_JOB_QUEUE_FLAG_NON_BLOCKING is unset.  }
-{$endif}
-{$ifndef MA_USE_EXPERIMENTAL_LOCK_FREE_JOB_QUEUE}
-{$endif}
+  {_Alignas(8) }  { The first item in the list. Required for removing from the top of the list.  }
+  {_Alignas(8) }  { The last item in the list. Required for appending to the end of the list.  }
   { Memory management.  }
 
-  type
     ma_job_queue = record
         flags : ma_uint32;
         capacity : ma_uint32;
@@ -7062,26 +5712,7 @@ type
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_job_queue  = ^ma_job_queue;
-  Pma_job_queue_config  = ^ma_job_queue_config;
 (* Const before type ignored *)
-
-  function ma_job_queue_get_heap_size(pConfig:Pma_job_queue_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_job_queue_init_preallocated(pConfig:Pma_job_queue_config; pHeap:pointer; pQueue:Pma_job_queue):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_job_queue_init(pConfig:Pma_job_queue_config; pAllocationCallbacks:Pma_allocation_callbacks; pQueue:Pma_job_queue):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_job_queue_uninit(pQueue:Pma_job_queue; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_job_queue_post(pQueue:Pma_job_queue; pJob:Pma_job):ma_result;cdecl; external;
-
-  function ma_job_queue_next(pQueue:Pma_job_queue; pJob:Pma_job):ma_result;cdecl; external;
 
   { Returns MA_CANCELLED if the next job is a quit job.  }
   {***********************************************************************************************************************************************************
@@ -7098,6 +5729,7 @@ type
   { Some backends are only supported on certain platforms.  }
 {$if defined(MA_WIN32)}
 {$define MA_SUPPORT_WASAPI}  
+  {todo}
 {$if defined(MA_WIN32_DESKTOP)   /* DirectSound and WinMM backends are only supported on desktops. */}
 {$define MA_SUPPORT_DSOUND}  
 {$define MA_SUPPORT_WINMM}  
@@ -7108,25 +5740,25 @@ type
 {$endif}
 {$endif}
 {$endif}
-{$if defined(MA_UNIX) AND NOT defined(MA_ORBIS) AND NOT defined(MA_PROSPERO)}
+{$if defined(MA_UNIX) && NOT defined(MA_ORBIS) && NOT defined(MA_PROSPERO)}
 {$if defined(MA_LINUX)}
-{$if NOT defined(MA_ANDROID) AND NOT defined(__COSMOPOLITAN__)   /* ALSA is not supported on Android. */}
+{$if NOT defined(MA_ANDROID) && NOT defined(__COSMOPOLITAN__)   /* ALSA is not supported on Android. */}
 {$define MA_SUPPORT_ALSA}  
 {$endif}
 {$endif}
-{$if NOT defined(MA_BSD) AND NOT defined(MA_ANDROID) AND NOT defined(MA_EMSCRIPTEN)}
+{$if NOT defined(MA_BSD) && NOT defined(MA_ANDROID) && NOT defined(MA_EMSCRIPTEN)}
 {$define MA_SUPPORT_PULSEAUDIO}  
 {$define MA_SUPPORT_JACK}  
 {$endif}
-{$if defined(__OpenBSD__)        /* <-- Change this to "#if defined(MA_BSD)" to enable sndio on all BSD flavors. */}
+{$if defined(OPENBSD)}
   { sndio is only supported on OpenBSD for now. May be expanded later if there's demand.  }
 {$define MA_SUPPORT_SNDIO}  
 {$endif}
-{$if defined(__NetBSD__) OR defined(__OpenBSD__)}
+{$if defined(NETBSD) OR defined(OPENBSD)}
   { Only support audio(4) on platforms with known support.  }
 {$define MA_SUPPORT_AUDIO4}  
 {$endif}
-{$if defined(__FreeBSD__) OR defined(__DragonFly__)}
+{$if defined(FREEBSD) OR defined(DragonFly)}
   { Only support OSS on specific platforms with known support.  }
 {$define MA_SUPPORT_OSS}  
 {$endif}
@@ -7147,49 +5779,49 @@ type
 {$if NOT defined(MA_EMSCRIPTEN)}
 {$define MA_SUPPORT_NULL}  
 {$endif}
-{$if defined(MA_SUPPORT_WASAPI) AND NOT defined(MA_NO_WASAPI) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WASAPI))}
+{$if defined(MA_SUPPORT_WASAPI) && NOT defined(MA_NO_WASAPI) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WASAPI))}
 {$define MA_HAS_WASAPI}  
 {$endif}
-{$if defined(MA_SUPPORT_DSOUND) AND NOT defined(MA_NO_DSOUND) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_DSOUND))}
+{$if defined(MA_SUPPORT_DSOUND) && NOT defined(MA_NO_DSOUND) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_DSOUND))}
 {$define MA_HAS_DSOUND}  
 {$endif}
-{$if defined(MA_SUPPORT_WINMM) AND NOT defined(MA_NO_WINMM) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WINMM))}
+{$if defined(MA_SUPPORT_WINMM) && NOT defined(MA_NO_WINMM) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WINMM))}
 {$define MA_HAS_WINMM}  
 {$endif}
-{$if defined(MA_SUPPORT_ALSA) AND NOT defined(MA_NO_ALSA) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_ALSA))}
+{$if defined(MA_SUPPORT_ALSA) && NOT defined(MA_NO_ALSA) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_ALSA))}
 {$define MA_HAS_ALSA}  
 {$endif}
-{$if defined(MA_SUPPORT_PULSEAUDIO) AND NOT defined(MA_NO_PULSEAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_PULSEAUDIO))}
+{$if defined(MA_SUPPORT_PULSEAUDIO) && NOT defined(MA_NO_PULSEAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_PULSEAUDIO))}
 {$define MA_HAS_PULSEAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_JACK) AND NOT defined(MA_NO_JACK) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_JACK))}
+{$if defined(MA_SUPPORT_JACK) && NOT defined(MA_NO_JACK) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_JACK))}
 {$define MA_HAS_JACK}  
 {$endif}
-{$if defined(MA_SUPPORT_COREAUDIO) AND NOT defined(MA_NO_COREAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_COREAUDIO))}
+{$if defined(MA_SUPPORT_COREAUDIO) && NOT defined(MA_NO_COREAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_COREAUDIO))}
 {$define MA_HAS_COREAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_SNDIO) AND NOT defined(MA_NO_SNDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_SNDIO))}
+{$if defined(MA_SUPPORT_SNDIO) && NOT defined(MA_NO_SNDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_SNDIO))}
 {$define MA_HAS_SNDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_AUDIO4) AND NOT defined(MA_NO_AUDIO4) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AUDIO4))}
+{$if defined(MA_SUPPORT_AUDIO4) && NOT defined(MA_NO_AUDIO4) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AUDIO4))}
 {$define MA_HAS_AUDIO4}  
 {$endif}
-{$if defined(MA_SUPPORT_OSS) AND NOT defined(MA_NO_OSS) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OSS))}
+{$if defined(MA_SUPPORT_OSS) && NOT defined(MA_NO_OSS) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OSS))}
 {$define MA_HAS_OSS}  
 {$endif}
-{$if defined(MA_SUPPORT_AAUDIO) AND NOT defined(MA_NO_AAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AAUDIO))}
+{$if defined(MA_SUPPORT_AAUDIO) && NOT defined(MA_NO_AAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AAUDIO))}
 {$define MA_HAS_AAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_OPENSL) AND NOT defined(MA_NO_OPENSL) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OPENSL))}
+{$if defined(MA_SUPPORT_OPENSL) && NOT defined(MA_NO_OPENSL) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OPENSL))}
 {$define MA_HAS_OPENSL}  
 {$endif}
-{$if defined(MA_SUPPORT_WEBAUDIO) AND NOT defined(MA_NO_WEBAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WEBAUDIO))}
+{$if defined(MA_SUPPORT_WEBAUDIO) && NOT defined(MA_NO_WEBAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WEBAUDIO))}
 {$define MA_HAS_WEBAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_CUSTOM) AND NOT defined(MA_NO_CUSTOM) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_CUSTOM))}
+{$if defined(MA_SUPPORT_CUSTOM) && NOT defined(MA_NO_CUSTOM) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_CUSTOM))}
 {$define MA_HAS_CUSTOM}  
 {$endif}
-{$if defined(MA_SUPPORT_NULL) AND NOT defined(MA_NO_NULL) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_NULL))}
+{$if defined(MA_SUPPORT_NULL) && NOT defined(MA_NO_NULL) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_NULL))}
 {$define MA_HAS_NULL}  
 {$endif}
   { The device's default state after initialization.  }
@@ -7197,23 +5829,27 @@ type
   { Transitioning from a stopped state to started.  }
   { Transitioning from a started state to stopped.  }
 
-  type
     ma_device_state = (ma_device_state_uninitialized := 0,
       ma_device_state_stopped := 1,ma_device_state_started := 2,
       ma_device_state_starting := 3,ma_device_state_stopping := 4
       );
+  {_Alignas(4) }
+    ma_atomic_device_state = record
+        value : ma_device_state;
+      end;
+{$ifdef MA_SUPPORT_WASAPI}
   { We need a IMMNotificationClient object for WASAPI.  }
 
     ma_IMMNotificationClient = record
         lpVtbl : pointer;
         counter : ma_uint32;
-        pDevice : pointer;  { ^ma_device }
+        pDevice : ^ma_device;
       end;
+{$endif}
   { Backend enums must be in priority order.  }
   { <-- Custom backend, with callbacks defined by the context config.  }
   { <-- Must always be the last item. Lowest priority, and used as the terminator for backend enumeration.  }
 
-  type
     ma_backend = (ma_backend_wasapi,ma_backend_dsound,ma_backend_winmm,
       ma_backend_coreaudio,ma_backend_sndio,
       ma_backend_audio4,ma_backend_oss,ma_backend_pulseaudio,
@@ -7221,8 +5857,6 @@ type
       ma_backend_opensl,ma_backend_webaudio,
       ma_backend_custom,ma_backend_null);
 
-      {const
-    MA_BACKEND_COUNT = ma_backend_null+1;    }
   {
   Device job thread. This is used by backends that require asynchronous processing of certain
   operations. It is not used by all backends.
@@ -7232,40 +5866,24 @@ type
    }
   { Set this to true if you want to process jobs yourself.  }
 
-  type
     ma_device_job_thread_config = record
         noThread : ma_bool32;
         jobQueueCapacity : ma_uint32;
         jobQueueFlags : ma_uint32;
       end;
 
-  function ma_device_job_thread_config_init:ma_device_job_thread_config;cdecl; external;
 
 
-  type
     ma_device_job_thread = record
         thread : ma_thread;
         jobQueue : ma_job_queue;
         _hasThread : ma_bool32;
       end;
-  Pma_device_job_thread  = ^ma_device_job_thread;
-  Pma_device_job_thread_config  = ^ma_device_job_thread_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_device_job_thread_init(pConfig:Pma_device_job_thread_config; pAllocationCallbacks:Pma_allocation_callbacks; pJobThread:Pma_device_job_thread):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_device_job_thread_uninit(pJobThread:Pma_device_job_thread; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_device_job_thread_post(pJobThread:Pma_device_job_thread; pJob:Pma_job):ma_result;cdecl; external;
-
-  function ma_device_job_thread_next(pJobThread:Pma_device_job_thread; pJob:Pma_job):ma_result;cdecl; external;
 
   { Device notification types.  }
 
-  type
     ma_device_notification_type = (ma_device_notification_type_started,
       ma_device_notification_type_stopped,
       ma_device_notification_type_rerouted,
@@ -7274,7 +5892,7 @@ type
       );
 
     ma_device_notification = record
-        pDevice : pointer;{^ma_device;}
+        pDevice : ^ma_device;
         _type : ma_device_notification_type;
         data : record
             case longint of
@@ -7334,7 +5952,6 @@ type
    }
 (* Const before type ignored *)
 
-  Pma_device_notification  = ^ma_device_notification;
     ma_device_notification_proc = procedure (pNotification:Pma_device_notification);cdecl;
   {
   The callback for processing audio data from the device.
@@ -7378,7 +5995,6 @@ type
    }
 (* Const before type ignored *)
 
-  Pma_device = ^ma_device;
     ma_device_data_proc = procedure (pDevice:Pma_device; pOutput:pointer; pInput:pointer; frameCount:ma_uint32);cdecl;
   {
   DEPRECATED. Use ma_device_notification_proc instead.
@@ -7563,7 +6179,8 @@ type
   { The custom backend could be anything. Give them a few options.  }
   { The null backend uses an integer for device IDs.  }
 
-    ma_device_id = record case longint of
+    ma_device_id = record
+        case longint of
           0 : ( wasapi : array[0..63] of ma_wchar_win32 );
           1 : ( dsound : array[0..15] of ma_uint8 );
           2 : ( winmm : ma_uint32 );
@@ -7587,263 +6204,13 @@ type
         end;
   { If set, this is supported in exclusive mode. Otherwise not natively supported by exclusive mode.  }
 
-    ma_atomic_device_state = record
-      {_Alignas(4)} value: ma_device_state;
-    end;
-
-  ma_atomic_float = record
-    {_Alignas(4)}value: ma_float;
-  end;
-  ma_atomic_bool32 = record
-    {_Alignas(4)}value: ma_bool32;
-  end;
-
-    ma_device = record
-        pContext : pointer; {^ma_context}
-        _type : ma_device_type;
-        sampleRate : ma_uint32;
-        state : ma_atomic_device_state;
-        onData : ma_device_data_proc;
-        onNotification : ma_device_notification_proc;
-        onStop : ma_stop_proc;
-        pUserData : pointer;
-        startStopLock : ma_mutex;
-        wakeupEvent : ma_event;
-        startEvent : ma_event;
-        stopEvent : ma_event;
-        thread : ma_thread;
-        workResult : ma_result;
-        isOwnerOfContext : ma_bool8;
-        noPreSilencedOutputBuffer : ma_bool8;
-        noClip : ma_bool8;
-        noDisableDenormals : ma_bool8;
-        noFixedSizedCallback : ma_bool8;
-        masterVolumeFactor : ma_atomic_float;
-        duplexRB : ma_duplex_rb;
-        resampling : record
-            algorithm : ma_resample_algorithm;
-            pBackendVTable : ^ma_resampling_backend_vtable;
-            pBackendUserData : pointer;
-            linear : record
-                lpfOrder : ma_uint32;
-              end;
-          end;
-        playback : record
-            pID : ^ma_device_id;
-            id : ma_device_id;
-            name : array[0..(MA_MAX_DEVICE_NAME_LENGTH+1)-1] of char;
-            shareMode : ma_share_mode;
-            format : ma_format;
-            channels : ma_uint32;
-            channelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
-            internalFormat : ma_format;
-            internalChannels : ma_uint32;
-            internalSampleRate : ma_uint32;
-            internalChannelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
-            internalPeriodSizeInFrames : ma_uint32;
-            internalPeriods : ma_uint32;
-            channelMixMode : ma_channel_mix_mode;
-            calculateLFEFromSpatialChannels : ma_bool32;
-            converter : ma_data_converter;
-            pIntermediaryBuffer : pointer;
-            intermediaryBufferCap : ma_uint32;
-            intermediaryBufferLen : ma_uint32;
-            pInputCache : pointer;
-            inputCacheCap : ma_uint64;
-            inputCacheConsumed : ma_uint64;
-            inputCacheRemaining : ma_uint64;
-          end;
-        capture : record
-            pID : ^ma_device_id;
-            id : ma_device_id;
-            name : array[0..(MA_MAX_DEVICE_NAME_LENGTH+1)-1] of char;
-            shareMode : ma_share_mode;
-            format : ma_format;
-            channels : ma_uint32;
-            channelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
-            internalFormat : ma_format;
-            internalChannels : ma_uint32;
-            internalSampleRate : ma_uint32;
-            internalChannelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
-            internalPeriodSizeInFrames : ma_uint32;
-            internalPeriods : ma_uint32;
-            channelMixMode : ma_channel_mix_mode;
-            calculateLFEFromSpatialChannels : ma_bool32;
-            converter : ma_data_converter;
-            pIntermediaryBuffer : pointer;
-            intermediaryBufferCap : ma_uint32;
-            intermediaryBufferLen : ma_uint32;
-          end;
-        todo : record
-            case longint of
-              0 : ( wasapi : record
-                  pAudioClientPlayback : ma_ptr;
-                  pAudioClientCapture : ma_ptr;
-                  pRenderClient : ma_ptr;
-                  pCaptureClient : ma_ptr;
-                  pDeviceEnumerator : ma_ptr;
-                  notificationClient : ma_IMMNotificationClient;
-                  hEventPlayback : ma_handle;
-                  hEventCapture : ma_handle;
-                  actualBufferSizeInFramesPlayback : ma_uint32;
-                  actualBufferSizeInFramesCapture : ma_uint32;
-                  originalPeriodSizeInFrames : ma_uint32;
-                  originalPeriodSizeInMilliseconds : ma_uint32;
-                  originalPeriods : ma_uint32;
-                  originalPerformanceProfile : ma_performance_profile;
-                  periodSizeInFramesPlayback : ma_uint32;
-                  periodSizeInFramesCapture : ma_uint32;
-                  pMappedBufferCapture : pointer;
-                  mappedBufferCaptureCap : ma_uint32;
-                  mappedBufferCaptureLen : ma_uint32;
-                  pMappedBufferPlayback : pointer;
-                  mappedBufferPlaybackCap : ma_uint32;
-                  mappedBufferPlaybackLen : ma_uint32;
-                  isStartedCapture : ma_atomic_bool32;
-                  isStartedPlayback : ma_atomic_bool32;
-                  loopbackProcessID : ma_uint32;
-                  loopbackProcessExclude : ma_bool8;
-                  noAutoConvertSRC : ma_bool8;
-                  noDefaultQualitySRC : ma_bool8;
-                  noHardwareOffloading : ma_bool8;
-                  allowCaptureAutoStreamRouting : ma_bool8;
-                  allowPlaybackAutoStreamRouting : ma_bool8;
-                  isDetachedPlayback : ma_bool8;
-                  isDetachedCapture : ma_bool8;
-                  usage : ma_wasapi_usage;
-                  hAvrtHandle : pointer;
-                  rerouteLock : ma_mutex;
-                end );
-              1 : ( dsound : record
-                  pPlayback : ma_ptr;
-                  pPlaybackPrimaryBuffer : ma_ptr;
-                  pPlaybackBuffer : ma_ptr;
-                  pCapture : ma_ptr;
-                  pCaptureBuffer : ma_ptr;
-                end );
-              2 : ( winmm : record
-                  hDevicePlayback : ma_handle;
-                  hDeviceCapture : ma_handle;
-                  hEventPlayback : ma_handle;
-                  hEventCapture : ma_handle;
-                  fragmentSizeInFrames : ma_uint32;
-                  iNextHeaderPlayback : ma_uint32;
-                  iNextHeaderCapture : ma_uint32;
-                  headerFramesConsumedPlayback : ma_uint32;
-                  headerFramesConsumedCapture : ma_uint32;
-                  pWAVEHDRPlayback : ^ma_uint8;
-                  pWAVEHDRCapture : ^ma_uint8;
-                  pIntermediaryBufferPlayback : ^ma_uint8;
-                  pIntermediaryBufferCapture : ^ma_uint8;
-                  _pHeapData : ^ma_uint8;
-                end );
-              3 : ( alsa : record
-                  pPCMPlayback : ma_ptr;
-                  pPCMCapture : ma_ptr;
-                  pPollDescriptorsPlayback : pointer;
-                  pPollDescriptorsCapture : pointer;
-                  pollDescriptorCountPlayback : longint;
-                  pollDescriptorCountCapture : longint;
-                  wakeupfdPlayback : longint;
-                  wakeupfdCapture : longint;
-                  isUsingMMapPlayback : ma_bool8;
-                  isUsingMMapCapture : ma_bool8;
-                end );
-              4 : ( pulse : record
-                  pMainLoop : ma_ptr;
-                  pPulseContext : ma_ptr;
-                  pStreamPlayback : ma_ptr;
-                  pStreamCapture : ma_ptr;
-                end );
-              5 : ( jack : record
-                  pClient : ma_ptr;
-                  ppPortsPlayback : ^ma_ptr;
-                  ppPortsCapture : ^ma_ptr;
-                  pIntermediaryBufferPlayback : ^single;
-                  pIntermediaryBufferCapture : ^single;
-                end );
-              6 : ( coreaudio : record
-                  deviceObjectIDPlayback : ma_uint32;
-                  deviceObjectIDCapture : ma_uint32;
-                  audioUnitPlayback : ma_ptr;
-                  audioUnitCapture : ma_ptr;
-                  pAudioBufferList : ma_ptr;
-                  audioBufferCapInFrames : ma_uint32;
-                  stopEvent : ma_event;
-                  originalPeriodSizeInFrames : ma_uint32;
-                  originalPeriodSizeInMilliseconds : ma_uint32;
-                  originalPeriods : ma_uint32;
-                  originalPerformanceProfile : ma_performance_profile;
-                  isDefaultPlaybackDevice : ma_bool32;
-                  isDefaultCaptureDevice : ma_bool32;
-                  isSwitchingPlaybackDevice : ma_bool32;
-                  isSwitchingCaptureDevice : ma_bool32;
-                  pNotificationHandler : pointer;
-                end );
-              7 : ( sndio : record
-                  handlePlayback : ma_ptr;
-                  handleCapture : ma_ptr;
-                  isStartedPlayback : ma_bool32;
-                  isStartedCapture : ma_bool32;
-                end );
-              8 : ( audio4 : record
-                  fdPlayback : longint;
-                  fdCapture : longint;
-                end );
-              9 : ( oss : record
-                  fdPlayback : longint;
-                  fdCapture : longint;
-                end );
-              10 : ( aaudio : record
-                  pStreamPlayback : ma_ptr;
-                  pStreamCapture : ma_ptr;
-                  usage : ma_aaudio_usage;
-                  contentType : ma_aaudio_content_type;
-                  inputPreset : ma_aaudio_input_preset;
-                  allowedCapturePolicy : ma_aaudio_allowed_capture_policy;
-                  noAutoStartAfterReroute : ma_bool32;
-                end );
-              11 : ( opensl : record
-                  pOutputMixObj : ma_ptr;
-                  pOutputMix : ma_ptr;
-                  pAudioPlayerObj : ma_ptr;
-                  pAudioPlayer : ma_ptr;
-                  pAudioRecorderObj : ma_ptr;
-                  pAudioRecorder : ma_ptr;
-                  pBufferQueuePlayback : ma_ptr;
-                  pBufferQueueCapture : ma_ptr;
-                  isDrainingCapture : ma_bool32;
-                  isDrainingPlayback : ma_bool32;
-                  currentBufferIndexPlayback : ma_uint32;
-                  currentBufferIndexCapture : ma_uint32;
-                  pBufferPlayback : ^ma_uint8;
-                  pBufferCapture : ^ma_uint8;
-                end );
-              12 : ( webaudio : record
-                  audioContext : longint;
-                  audioWorklet : longint;
-                  pIntermediaryBuffer : ^single;
-                  pStackBuffer : pointer;
-                  initResult : ma_result;
-                  deviceIndex : longint;
-                end );
-              13 : ( null_device : record
-                  deviceThread : ma_thread;
-                  operationEvent : ma_event;
-                  operationCompletionEvent : ma_event;
-                  operationSemaphore : ma_semaphore;
-                  operation : ma_uint32;
-                  operationResult : ma_result;
-                  timer : ma_timer;
-                  priorRunTime : double;
-                  currentPeriodFramesRemainingPlayback : ma_uint32;
-                  currentPeriodFramesRemainingCapture : ma_uint32;
-                  lastProcessedFramePlayback : ma_uint64;
-                  lastProcessedFrameCapture : ma_uint64;
-                  isStarted : ma_atomic_bool32;
-                end );
-            end;
-      end;
+  { Basic info. This is the only information guaranteed to be filled in during device enumeration.  }
+  { +1 for null terminator.  }
+  { Sample format. If set to ma_format_unknown, all sample formats are supported.  }
+  { If set to 0, all channels are supported.  }
+  { If set to 0, all sample rates are supported.  }
+  { A combination of MA_DATA_FORMAT_FLAG_* flags.  }
+  {ma_format_count * ma_standard_sample_rate_count * MA_MAX_CHANNELS }  { Not sure how big to make this. There can be *many* permutations for virtual devices which can support anything.  }
 
     ma_device_info = record
         id : ma_device_id;
@@ -7929,8 +6296,8 @@ type
             noAutoResample : ma_bool32;
           end;
         pulse : record
-            pStreamNamePlayback : pchar;
-            pStreamNameCapture : pchar;
+            pStreamNamePlayback : ^char;
+            pStreamNameCapture : ^char;
           end;
         coreaudio : record
             allowNominalSampleRateChange : ma_bool32;
@@ -7971,7 +6338,149 @@ type
       The user data pointer passed into `ma_context_enumerate_devices()`.
    }
 (* Const before type ignored *)
-  type
+
+    ma_enum_devices_callback_proc = function (pContext:Pma_context; deviceType:ma_device_type; pInfo:Pma_device_info; pUserData:pointer):ma_bool32;cdecl;
+  {
+  Describes some basic details about a playback or capture device.
+   }
+(* Const before type ignored *)
+
+    ma_device_descriptor = record
+        pDeviceID : ^ma_device_id;
+        shareMode : ma_share_mode;
+        format : ma_format;
+        channels : ma_uint32;
+        sampleRate : ma_uint32;
+        channelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
+        periodSizeInFrames : ma_uint32;
+        periodSizeInMilliseconds : ma_uint32;
+        periodCount : ma_uint32;
+      end;
+  {
+  These are the callbacks required to be implemented for a backend. These callbacks are grouped into two parts: context and device. There is one context
+  to many devices. A device is created from a context.
+  
+  The general flow goes like this:
+  
+    1) A context is created with `onContextInit()`
+       1a) Available devices can be enumerated with `onContextEnumerateDevices()` if required.
+       1b) Detailed information about a device can be queried with `onContextGetDeviceInfo()` if required.
+    2) A device is created from the context that was created in the first step using `onDeviceInit()`, and optionally a device ID that was
+       selected from device enumeration via `onContextEnumerateDevices()`.
+    3) A device is started or stopped with `onDeviceStart()` / `onDeviceStop()`
+    4) Data is delivered to and from the device by the backend. This is always done based on the native format returned by the prior call
+       to `onDeviceInit()`. Conversion between the device's native format and the format requested by the application will be handled by
+       miniaudio internally.
+  
+  Initialization of the context is quite simple. You need to do any necessary initialization of internal objects and then output the
+  callbacks defined in this structure.
+  
+  Once the context has been initialized you can initialize a device. Before doing so, however, the application may want to know which
+  physical devices are available. This is where `onContextEnumerateDevices()` comes in. This is fairly simple. For each device, fire the
+  given callback with, at a minimum, the basic information filled out in `ma_device_info`. When the callback returns `MA_FALSE`, enumeration
+  needs to stop and the `onContextEnumerateDevices()` function returns with a success code.
+  
+  Detailed device information can be retrieved from a device ID using `onContextGetDeviceInfo()`. This takes as input the device type and ID,
+  and on output returns detailed information about the device in `ma_device_info`. The `onContextGetDeviceInfo()` callback must handle the
+  case when the device ID is NULL, in which case information about the default device needs to be retrieved.
+  
+  Once the context has been created and the device ID retrieved (if using anything other than the default device), the device can be created.
+  This is a little bit more complicated than initialization of the context due to it's more complicated configuration. When initializing a
+  device, a duplex device may be requested. This means a separate data format needs to be specified for both playback and capture. On input,
+  the data format is set to what the application wants. On output it's set to the native format which should match as closely as possible to
+  the requested format. The conversion between the format requested by the application and the device's native format will be handled
+  internally by miniaudio.
+  
+  On input, if the sample format is set to `ma_format_unknown`, the backend is free to use whatever sample format it desires, so long as it's
+  supported by miniaudio. When the channel count is set to 0, the backend should use the device's native channel count. The same applies for
+  sample rate. For the channel map, the default should be used when `ma_channel_map_is_blank()` returns true (all channels set to
+  `MA_CHANNEL_NONE`). On input, the `periodSizeInFrames` or `periodSizeInMilliseconds` option should always be set. The backend should
+  inspect both of these variables. If `periodSizeInFrames` is set, it should take priority, otherwise it needs to be derived from the period
+  size in milliseconds (`periodSizeInMilliseconds`) and the sample rate, keeping in mind that the sample rate may be 0, in which case the
+  sample rate will need to be determined before calculating the period size in frames. On output, all members of the `ma_device_descriptor`
+  object should be set to a valid value, except for `periodSizeInMilliseconds` which is optional (`periodSizeInFrames` *must* be set).
+  
+  Starting and stopping of the device is done with `onDeviceStart()` and `onDeviceStop()` and should be self-explanatory. If the backend uses
+  asynchronous reading and writing, `onDeviceStart()` and `onDeviceStop()` should always be implemented.
+  
+  The handling of data delivery between the application and the device is the most complicated part of the process. To make this a bit
+  easier, some helper callbacks are available. If the backend uses a blocking read/write style of API, the `onDeviceRead()` and
+  `onDeviceWrite()` callbacks can optionally be implemented. These are blocking and work just like reading and writing from a file. If the
+  backend uses a callback for data delivery, that callback must call `ma_device_handle_backend_data_callback()` from within it's callback.
+  This allows miniaudio to then process any necessary data conversion and then pass it to the miniaudio data callback.
+  
+  If the backend requires absolute flexibility with it's data delivery, it can optionally implement the `onDeviceDataLoop()` callback
+  which will allow it to implement the logic that will run on the audio thread. This is much more advanced and is completely optional.
+  
+  The audio thread should run data delivery logic in a loop while `ma_device_get_state() == ma_device_state_started` and no errors have been
+  encountered. Do not start or stop the device here. That will be handled from outside the `onDeviceDataLoop()` callback.
+  
+  The invocation of the `onDeviceDataLoop()` callback will be handled by miniaudio. When you start the device, miniaudio will fire this
+  callback. When the device is stopped, the `ma_device_get_state() == ma_device_state_started` condition will fail and the loop will be terminated
+  which will then fall through to the part that stops the device. For an example on how to implement the `onDeviceDataLoop()` callback,
+  look at `ma_device_audio_thread__default_read_write()`. Implement the `onDeviceDataLoopWakeup()` callback if you need a mechanism to
+  wake up the audio thread.
+  
+  If the backend supports an optimized retrieval of device information from an initialized `ma_device` object, it should implement the
+  `onDeviceGetInfo()` callback. This is optional, in which case it will fall back to `onContextGetDeviceInfo()` which is less efficient.
+   }
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+    ma_backend_callbacks = record
+        onContextInit : function (pContext:Pma_context; pConfig:Pma_context_config; pCallbacks:Pma_backend_callbacks):ma_result;cdecl;
+        onContextUninit : function (pContext:Pma_context):ma_result;cdecl;
+        onContextEnumerateDevices : function (pContext:Pma_context; callback:ma_enum_devices_callback_proc; pUserData:pointer):ma_result;cdecl;
+        onContextGetDeviceInfo : function (pContext:Pma_context; deviceType:ma_device_type; pDeviceID:Pma_device_id; pDeviceInfo:Pma_device_info):ma_result;cdecl;
+        onDeviceInit : function (pDevice:Pma_device; pConfig:Pma_device_config; pDescriptorPlayback:Pma_device_descriptor; pDescriptorCapture:Pma_device_descriptor):ma_result;cdecl;
+        onDeviceUninit : function (pDevice:Pma_device):ma_result;cdecl;
+        onDeviceStart : function (pDevice:Pma_device):ma_result;cdecl;
+        onDeviceStop : function (pDevice:Pma_device):ma_result;cdecl;
+        onDeviceRead : function (pDevice:Pma_device; pFrames:pointer; frameCount:ma_uint32; pFramesRead:Pma_uint32):ma_result;cdecl;
+        onDeviceWrite : function (pDevice:Pma_device; pFrames:pointer; frameCount:ma_uint32; pFramesWritten:Pma_uint32):ma_result;cdecl;
+        onDeviceDataLoop : function (pDevice:Pma_device):ma_result;cdecl;
+        onDeviceDataLoopWakeup : function (pDevice:Pma_device):ma_result;cdecl;
+        onDeviceGetInfo : function (pDevice:Pma_device; _type:ma_device_type; pDeviceInfo:Pma_device_info):ma_result;cdecl;
+      end;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  { Enables autospawning of the PulseAudio daemon if necessary.  }
+  { iOS only. When set to true, does not perform an explicit [[AVAudioSession sharedInstace] setActive:true] on initialization.  }
+  { iOS only. When set to true, does not perform an explicit [[AVAudioSession sharedInstace] setActive:false] on uninitialization.  }
+(* Const before type ignored *)
+    ma_context_config = record
+        pLog : ^ma_log;
+        threadPriority : ma_thread_priority;
+        threadStackSize : size_t;
+        pUserData : pointer;
+        allocationCallbacks : ma_allocation_callbacks;
+        alsa : record
+            useVerboseDeviceEnumeration : ma_bool32;
+          end;
+        pulse : record
+            pApplicationName : ^char;
+            pServerName : ^char;
+            tryAutoSpawn : ma_bool32;
+          end;
+        coreaudio : record
+            sessionCategory : ma_ios_session_category;
+            sessionCategoryOptions : ma_uint32;
+            noAudioSessionActivate : ma_bool32;
+            noAudioSessionDeactivate : ma_bool32;
+          end;
+        jack : record
+            pClientName : ^char;
+            tryStartServer : ma_bool32;
+          end;
+        custom : ma_backend_callbacks;
+      end;
+
+  { WASAPI specific structure for some commands which must run on a common thread due to bugs in WASAPI.  }
+  { This will be signalled when the event is complete.  }
+  { The result from creating the audio client service.  }
+
     ma_context_command__wasapi = record
         code : longint;
         pEvent : ^ma_event;
@@ -7992,31 +6501,51 @@ type
                 end );
             end;
       end;
-    Pma_device_info  = ^ma_device_info;
-    Pma_device_id  = ^ma_device_id;
-    ma_enum_devices_callback_proc = function (pContext:pointer; {Pma_context;} deviceType:ma_device_type; pInfo:Pma_device_info; pUserData:pointer):ma_bool32;cdecl;
-    Pma_context_config  = ^ma_context_config;
-    Pma_backend_callbacks  = ^ma_backend_callbacks;
-    Pma_device_config  = ^ma_device_config;
-    Pma_device_descriptor  = ^ma_device_descriptor;
-    Pma_backend  = ^ma_backend;
-    PPma_device_info = ^ Pma_device_info;
-      Pma_context = ^ma_context;
-    ma_backend_callbacks = record
-        onContextInit : function (pContext:Pma_context; pConfig:Pma_context_config; pCallbacks:Pma_backend_callbacks):ma_result;cdecl;
-        onContextUninit : function (pContext:Pma_context):ma_result;cdecl;
-        onContextEnumerateDevices : function (pContext:Pma_context; callback:ma_enum_devices_callback_proc; pUserData:pointer):ma_result;cdecl;
-        onContextGetDeviceInfo : function (pContext:Pma_context; deviceType:ma_device_type; pDeviceID:Pma_device_id; pDeviceInfo:Pma_device_info):ma_result;cdecl;
-        onDeviceInit : function (pDevice:Pma_device; pConfig:Pma_device_config; pDescriptorPlayback:Pma_device_descriptor; pDescriptorCapture:Pma_device_descriptor):ma_result;cdecl;
-        onDeviceUninit : function (pDevice:Pma_device):ma_result;cdecl;
-        onDeviceStart : function (pDevice:Pma_device):ma_result;cdecl;
-        onDeviceStop : function (pDevice:Pma_device):ma_result;cdecl;
-        onDeviceRead : function (pDevice:Pma_device; pFrames:pointer; frameCount:ma_uint32; pFramesRead:Pma_uint32):ma_result;cdecl;
-        onDeviceWrite : function (pDevice:Pma_device; pFrames:pointer; frameCount:ma_uint32; pFramesWritten:Pma_uint32):ma_result;cdecl;
-        onDeviceDataLoop : function (pDevice:Pma_device):ma_result;cdecl;
-        onDeviceDataLoopWakeup : function (pDevice:Pma_device):ma_result;cdecl;
-        onDeviceGetInfo : function (pDevice:Pma_device; _type:ma_device_type; pDeviceInfo:Pma_device_info):ma_result;cdecl;
-      end;
+  { DirectSound, ALSA, etc.  }
+  { Only used if the log is owned by the context. The pLog member will be set to &log in this case.  }
+  { Used to make ma_context_get_devices() thread safe.  }
+  { Used to make ma_context_get_device_info() thread safe.  }
+  { Total capacity of pDeviceInfos.  }
+  { Playback devices first, then capture.  }
+{$ifdef MA_SUPPORT_WASAPI}
+{$endif}
+{$ifdef MA_SUPPORT_DSOUND}
+{$endif}
+{$ifdef MA_SUPPORT_WINMM}
+{$endif}
+{$ifdef MA_SUPPORT_ALSA}
+{$endif}
+{$ifdef MA_SUPPORT_PULSEAUDIO}
+  {pa_mainloop* }  {pa_context* }  { Set when the context is initialized. Used by devices for their local pa_context objects.  }
+  { Set when the context is initialized. Used by devices for their local pa_context objects.  }
+{$endif}
+{$ifdef MA_SUPPORT_JACK}
+{$endif}
+{$ifdef MA_SUPPORT_COREAUDIO}
+  { Could possibly be set to AudioToolbox on later versions of macOS.  }
+  {AudioComponent }  { For tracking whether or not the iOS audio session should be explicitly deactivated. Set from the config in ma_context_init__coreaudio().  }
+{$endif}
+{$ifdef MA_SUPPORT_SNDIO}
+{$endif}
+{$ifdef MA_SUPPORT_AUDIO4}
+{$endif}
+{$ifdef MA_SUPPORT_OSS}
+{$endif}
+{$ifdef MA_SUPPORT_AAUDIO}
+  { libaaudio.so  }
+  { For processing operations outside of the error callback, specifically device disconnections and rerouting.  }
+{$endif}
+{$ifdef MA_SUPPORT_OPENSL}
+{$endif}
+{$ifdef MA_SUPPORT_WEBAUDIO}
+{$endif}
+{$ifdef MA_SUPPORT_NULL}
+{$endif}
+{$if defined(MA_WIN32)}
+  {HMODULE }  {HMODULE }  {HMODULE }  {HRESULT }{$endif}
+{$ifdef MA_POSIX}
+{$endif}
+
     ma_context = record
         callbacks : ma_backend_callbacks;
         backend : ma_backend;
@@ -8210,8 +6739,8 @@ type
                   pa_stream_readable_size : ma_proc;
                   pMainLoop : ma_ptr;
                   pPulseContext : ma_ptr;
-                  pApplicationName : pchar;
-                  pServerName : pchar;
+                  pApplicationName : ^char;
+                  pServerName : ^char;
                 end );
               5 : ( jack : record
                   jackSO : ma_handle;
@@ -8231,7 +6760,7 @@ type
                   jack_port_name : ma_proc;
                   jack_port_get_buffer : ma_proc;
                   jack_free : ma_proc;
-                  pClientName : pchar;
+                  pClientName : ^char;
                   tryStartServer : ma_bool32;
                 end );
               6 : ( coreaudio : record
@@ -8364,179 +6893,6 @@ type
             end;
       end;
 
-
-  {
-  Describes some basic details about a playback or capture device.
-   }
-(* Const before type ignored *)
-
-    ma_device_descriptor = record
-        pDeviceID : ^ma_device_id;
-        shareMode : ma_share_mode;
-        format : ma_format;
-        channels : ma_uint32;
-        sampleRate : ma_uint32;
-        channelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
-        periodSizeInFrames : ma_uint32;
-        periodSizeInMilliseconds : ma_uint32;
-        periodCount : ma_uint32;
-      end;
-  {
-  These are the callbacks required to be implemented for a backend. These callbacks are grouped into two parts: context and device. There is one context
-  to many devices. A device is created from a context.
-  
-  The general flow goes like this:
-  
-    1) A context is created with `onContextInit()`
-       1a) Available devices can be enumerated with `onContextEnumerateDevices()` if required.
-       1b) Detailed information about a device can be queried with `onContextGetDeviceInfo()` if required.
-    2) A device is created from the context that was created in the first step using `onDeviceInit()`, and optionally a device ID that was
-       selected from device enumeration via `onContextEnumerateDevices()`.
-    3) A device is started or stopped with `onDeviceStart()` / `onDeviceStop()`
-    4) Data is delivered to and from the device by the backend. This is always done based on the native format returned by the prior call
-       to `onDeviceInit()`. Conversion between the device's native format and the format requested by the application will be handled by
-       miniaudio internally.
-  
-  Initialization of the context is quite simple. You need to do any necessary initialization of internal objects and then output the
-  callbacks defined in this structure.
-  
-  Once the context has been initialized you can initialize a device. Before doing so, however, the application may want to know which
-  physical devices are available. This is where `onContextEnumerateDevices()` comes in. This is fairly simple. For each device, fire the
-  given callback with, at a minimum, the basic information filled out in `ma_device_info`. When the callback returns `MA_FALSE`, enumeration
-  needs to stop and the `onContextEnumerateDevices()` function returns with a success code.
-  
-  Detailed device information can be retrieved from a device ID using `onContextGetDeviceInfo()`. This takes as input the device type and ID,
-  and on output returns detailed information about the device in `ma_device_info`. The `onContextGetDeviceInfo()` callback must handle the
-  case when the device ID is NULL, in which case information about the default device needs to be retrieved.
-  
-  Once the context has been created and the device ID retrieved (if using anything other than the default device), the device can be created.
-  This is a little bit more complicated than initialization of the context due to it's more complicated configuration. When initializing a
-  device, a duplex device may be requested. This means a separate data format needs to be specified for both playback and capture. On input,
-  the data format is set to what the application wants. On output it's set to the native format which should match as closely as possible to
-  the requested format. The conversion between the format requested by the application and the device's native format will be handled
-  internally by miniaudio.
-  
-  On input, if the sample format is set to `ma_format_unknown`, the backend is free to use whatever sample format it desires, so long as it's
-  supported by miniaudio. When the channel count is set to 0, the backend should use the device's native channel count. The same applies for
-  sample rate. For the channel map, the default should be used when `ma_channel_map_is_blank()` returns true (all channels set to
-  `MA_CHANNEL_NONE`). On input, the `periodSizeInFrames` or `periodSizeInMilliseconds` option should always be set. The backend should
-  inspect both of these variables. If `periodSizeInFrames` is set, it should take priority, otherwise it needs to be derived from the period
-  size in milliseconds (`periodSizeInMilliseconds`) and the sample rate, keeping in mind that the sample rate may be 0, in which case the
-  sample rate will need to be determined before calculating the period size in frames. On output, all members of the `ma_device_descriptor`
-  object should be set to a valid value, except for `periodSizeInMilliseconds` which is optional (`periodSizeInFrames` *must* be set).
-  
-  Starting and stopping of the device is done with `onDeviceStart()` and `onDeviceStop()` and should be self-explanatory. If the backend uses
-  asynchronous reading and writing, `onDeviceStart()` and `onDeviceStop()` should always be implemented.
-  
-  The handling of data delivery between the application and the device is the most complicated part of the process. To make this a bit
-  easier, some helper callbacks are available. If the backend uses a blocking read/write style of API, the `onDeviceRead()` and
-  `onDeviceWrite()` callbacks can optionally be implemented. These are blocking and work just like reading and writing from a file. If the
-  backend uses a callback for data delivery, that callback must call `ma_device_handle_backend_data_callback()` from within it's callback.
-  This allows miniaudio to then process any necessary data conversion and then pass it to the miniaudio data callback.
-  
-  If the backend requires absolute flexibility with it's data delivery, it can optionally implement the `onDeviceDataLoop()` callback
-  which will allow it to implement the logic that will run on the audio thread. This is much more advanced and is completely optional.
-  
-  The audio thread should run data delivery logic in a loop while `ma_device_get_state() == ma_device_state_started` and no errors have been
-  encountered. Do not start or stop the device here. That will be handled from outside the `onDeviceDataLoop()` callback.
-  
-  The invocation of the `onDeviceDataLoop()` callback will be handled by miniaudio. When you start the device, miniaudio will fire this
-  callback. When the device is stopped, the `ma_device_get_state() == ma_device_state_started` condition will fail and the loop will be terminated
-  which will then fall through to the part that stops the device. For an example on how to implement the `onDeviceDataLoop()` callback,
-  look at `ma_device_audio_thread__default_read_write()`. Implement the `onDeviceDataLoopWakeup()` callback if you need a mechanism to
-  wake up the audio thread.
-  
-  If the backend supports an optimized retrieval of device information from an initialized `ma_device` object, it should implement the
-  `onDeviceGetInfo()` callback. This is optional, in which case it will fall back to `onContextGetDeviceInfo()` which is less efficient.
-   }
-(* Const before type ignored *)
-(* Const before type ignored *)
-(* Const before type ignored *)
-(* Const before type ignored *)
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  { Enables autospawning of the PulseAudio daemon if necessary.  }
-  { iOS only. When set to true, does not perform an explicit [[AVAudioSession sharedInstace] setActive:true] on initialization.  }
-  { iOS only. When set to true, does not perform an explicit [[AVAudioSession sharedInstace] setActive:false] on uninitialization.  }
-(* Const before type ignored *)
-    ma_context_config = record
-        pLog : ^ma_log;
-        threadPriority : ma_thread_priority;
-        threadStackSize : size_t;
-        pUserData : pointer;
-        allocationCallbacks : ma_allocation_callbacks;
-        alsa : record
-            useVerboseDeviceEnumeration : ma_bool32;
-          end;
-        pulse : record
-            pApplicationName : pchar;
-            pServerName : pchar;
-            tryAutoSpawn : ma_bool32;
-          end;
-        coreaudio : record
-            sessionCategory : ma_ios_session_category;
-            sessionCategoryOptions : ma_uint32;
-            noAudioSessionActivate : ma_bool32;
-            noAudioSessionDeactivate : ma_bool32;
-          end;
-        jack : record
-            pClientName : pchar;
-            tryStartServer : ma_bool32;
-          end;
-        custom : ma_backend_callbacks;
-      end;
-
-  { WASAPI specific structure for some commands which must run on a common thread due to bugs in WASAPI.  }
-  { This will be signalled when the event is complete.  }
-  { The result from creating the audio client service.  }
-
-  { DirectSound, ALSA, etc.  }
-  { Only used if the log is owned by the context. The pLog member will be set to &log in this case.  }
-  { Used to make ma_context_get_devices() thread safe.  }
-  { Used to make ma_context_get_device_info() thread safe.  }
-  { Total capacity of pDeviceInfos.  }
-  { Playback devices first, then capture.  }
-{$ifdef MA_SUPPORT_WASAPI}
-{$endif}
-{$ifdef MA_SUPPORT_DSOUND}
-{$endif}
-{$ifdef MA_SUPPORT_WINMM}
-{$endif}
-{$ifdef MA_SUPPORT_ALSA}
-{$endif}
-{$ifdef MA_SUPPORT_PULSEAUDIO}
-  {pa_mainloop* }  {pa_context* }  { Set when the context is initialized. Used by devices for their local pa_context objects.  }
-  { Set when the context is initialized. Used by devices for their local pa_context objects.  }
-{$endif}
-{$ifdef MA_SUPPORT_JACK}
-{$endif}
-{$ifdef MA_SUPPORT_COREAUDIO}
-  { Could possibly be set to AudioToolbox on later versions of macOS.  }
-  {AudioComponent }  { For tracking whether or not the iOS audio session should be explicitly deactivated. Set from the config in ma_context_init__coreaudio().  }
-{$endif}
-{$ifdef MA_SUPPORT_SNDIO}
-{$endif}
-{$ifdef MA_SUPPORT_AUDIO4}
-{$endif}
-{$ifdef MA_SUPPORT_OSS}
-{$endif}
-{$ifdef MA_SUPPORT_AAUDIO}
-  { libaaudio.so  }
-  { For processing operations outside of the error callback, specifically device disconnections and rerouting.  }
-{$endif}
-{$ifdef MA_SUPPORT_OPENSL}
-{$endif}
-{$ifdef MA_SUPPORT_WEBAUDIO}
-{$endif}
-{$ifdef MA_SUPPORT_NULL}
-{$endif}
-  {todo }
-{$if defined(MA_WIN32)}
-  {HMODULE }  {HMODULE }  {HMODULE }  {HRESULT }{$endif}
-{$ifdef MA_POSIX}
-{$endif}
-
   { The state of the device is variable and can change at any time on any thread. Must be used atomically.  }
   { Set once at initialization time and should not be changed after.  }
   { Set once at initialization time and should not be changed after.  }
@@ -8616,20 +6972,254 @@ type
   { Read and written by multiple threads. Must be used atomically, and must be 32-bit for compiler compatibility.  }
 {$endif}
 
-{$if defined(_MSC_VER) AND NOT defined(__clang__)}
-(** unsupported pragma#pragma warning(pop)*)
-(*** was #elif ****){$else defined(__clang__) OR (defined(__GNUC__) AND (__GNUC__ > 4 OR (__GNUC__ == 4 AND __GNUC_MINOR__ >= 8)))}
-(** unsupported pragma#pragma GCC diagnostic pop  /* For ISO C99 doesn't support unnamed structs/unions [-Wpedantic] */*)
-{$endif}
-  const
-    MA_DATA_FORMAT_FLAG_EXCLUSIVE_MODE = 1 shl 1;    
-  { Basic info. This is the only information guaranteed to be filled in during device enumeration.  }
-  { +1 for null terminator.  }
-  { Sample format. If set to ma_format_unknown, all sample formats are supported.  }
-  { If set to 0, all channels are supported.  }
-  { If set to 0, all sample rates are supported.  }
-  { A combination of MA_DATA_FORMAT_FLAG_* flags.  }
-  {ma_format_count * ma_standard_sample_rate_count * MA_MAX_CHANNELS }  { Not sure how big to make this. There can be *many* permutations for virtual devices which can support anything.  }
+    ma_device = record
+        pContext : ^ma_context;
+        _type : ma_device_type;
+        sampleRate : ma_uint32;
+        state : ma_atomic_device_state;
+        onData : ma_device_data_proc;
+        onNotification : ma_device_notification_proc;
+        onStop : ma_stop_proc;
+        pUserData : pointer;
+        startStopLock : ma_mutex;
+        wakeupEvent : ma_event;
+        startEvent : ma_event;
+        stopEvent : ma_event;
+        thread : ma_thread;
+        workResult : ma_result;
+        isOwnerOfContext : ma_bool8;
+        noPreSilencedOutputBuffer : ma_bool8;
+        noClip : ma_bool8;
+        noDisableDenormals : ma_bool8;
+        noFixedSizedCallback : ma_bool8;
+        masterVolumeFactor : ma_atomic_float;
+        duplexRB : ma_duplex_rb;
+        resampling : record
+            algorithm : ma_resample_algorithm;
+            pBackendVTable : ^ma_resampling_backend_vtable;
+            pBackendUserData : pointer;
+            linear : record
+                lpfOrder : ma_uint32;
+              end;
+          end;
+        playback : record
+            pID : ^ma_device_id;
+            id : ma_device_id;
+            name : array[0..(MA_MAX_DEVICE_NAME_LENGTH+1)-1] of char;
+            shareMode : ma_share_mode;
+            format : ma_format;
+            channels : ma_uint32;
+            channelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
+            internalFormat : ma_format;
+            internalChannels : ma_uint32;
+            internalSampleRate : ma_uint32;
+            internalChannelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
+            internalPeriodSizeInFrames : ma_uint32;
+            internalPeriods : ma_uint32;
+            channelMixMode : ma_channel_mix_mode;
+            calculateLFEFromSpatialChannels : ma_bool32;
+            converter : ma_data_converter;
+            pIntermediaryBuffer : pointer;
+            intermediaryBufferCap : ma_uint32;
+            intermediaryBufferLen : ma_uint32;
+            pInputCache : pointer;
+            inputCacheCap : ma_uint64;
+            inputCacheConsumed : ma_uint64;
+            inputCacheRemaining : ma_uint64;
+          end;
+        capture : record
+            pID : ^ma_device_id;
+            id : ma_device_id;
+            name : array[0..(MA_MAX_DEVICE_NAME_LENGTH+1)-1] of char;
+            shareMode : ma_share_mode;
+            format : ma_format;
+            channels : ma_uint32;
+            channelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
+            internalFormat : ma_format;
+            internalChannels : ma_uint32;
+            internalSampleRate : ma_uint32;
+            internalChannelMap : array[0..(MA_MAX_CHANNELS)-1] of ma_channel;
+            internalPeriodSizeInFrames : ma_uint32;
+            internalPeriods : ma_uint32;
+            channelMixMode : ma_channel_mix_mode;
+            calculateLFEFromSpatialChannels : ma_bool32;
+            converter : ma_data_converter;
+            pIntermediaryBuffer : pointer;
+            intermediaryBufferCap : ma_uint32;
+            intermediaryBufferLen : ma_uint32;
+          end;
+        todo : record
+            case longint of
+          {$ifdef MA_SUPPORT_WASAPI}
+              0 : ( wasapi : record
+                  pAudioClientPlayback : ma_ptr;
+                  pAudioClientCapture : ma_ptr;
+                  pRenderClient : ma_ptr;
+                  pCaptureClient : ma_ptr;
+                  pDeviceEnumerator : ma_ptr;
+                  notificationClient : ma_IMMNotificationClient;
+                  hEventPlayback : ma_handle;
+                  hEventCapture : ma_handle;
+                  actualBufferSizeInFramesPlayback : ma_uint32;
+                  actualBufferSizeInFramesCapture : ma_uint32;
+                  originalPeriodSizeInFrames : ma_uint32;
+                  originalPeriodSizeInMilliseconds : ma_uint32;
+                  originalPeriods : ma_uint32;
+                  originalPerformanceProfile : ma_performance_profile;
+                  periodSizeInFramesPlayback : ma_uint32;
+                  periodSizeInFramesCapture : ma_uint32;
+                  pMappedBufferCapture : pointer;
+                  mappedBufferCaptureCap : ma_uint32;
+                  mappedBufferCaptureLen : ma_uint32;
+                  pMappedBufferPlayback : pointer;
+                  mappedBufferPlaybackCap : ma_uint32;
+                  mappedBufferPlaybackLen : ma_uint32;
+                  isStartedCapture : ma_atomic_bool32;
+                  isStartedPlayback : ma_atomic_bool32;
+                  loopbackProcessID : ma_uint32;
+                  loopbackProcessExclude : ma_bool8;
+                  noAutoConvertSRC : ma_bool8;
+                  noDefaultQualitySRC : ma_bool8;
+                  noHardwareOffloading : ma_bool8;
+                  allowCaptureAutoStreamRouting : ma_bool8;
+                  allowPlaybackAutoStreamRouting : ma_bool8;
+                  isDetachedPlayback : ma_bool8;
+                  isDetachedCapture : ma_bool8;
+                  usage : ma_wasapi_usage;
+                  hAvrtHandle : pointer;
+                  rerouteLock : ma_mutex;
+                end );
+          {$endif}
+              1 : ( dsound : record
+                  pPlayback : ma_ptr;
+                  pPlaybackPrimaryBuffer : ma_ptr;
+                  pPlaybackBuffer : ma_ptr;
+                  pCapture : ma_ptr;
+                  pCaptureBuffer : ma_ptr;
+                end );
+              2 : ( winmm : record
+                  hDevicePlayback : ma_handle;
+                  hDeviceCapture : ma_handle;
+                  hEventPlayback : ma_handle;
+                  hEventCapture : ma_handle;
+                  fragmentSizeInFrames : ma_uint32;
+                  iNextHeaderPlayback : ma_uint32;
+                  iNextHeaderCapture : ma_uint32;
+                  headerFramesConsumedPlayback : ma_uint32;
+                  headerFramesConsumedCapture : ma_uint32;
+                  pWAVEHDRPlayback : ^ma_uint8;
+                  pWAVEHDRCapture : ^ma_uint8;
+                  pIntermediaryBufferPlayback : ^ma_uint8;
+                  pIntermediaryBufferCapture : ^ma_uint8;
+                  _pHeapData : ^ma_uint8;
+                end );
+              3 : ( alsa : record
+                  pPCMPlayback : ma_ptr;
+                  pPCMCapture : ma_ptr;
+                  pPollDescriptorsPlayback : pointer;
+                  pPollDescriptorsCapture : pointer;
+                  pollDescriptorCountPlayback : longint;
+                  pollDescriptorCountCapture : longint;
+                  wakeupfdPlayback : longint;
+                  wakeupfdCapture : longint;
+                  isUsingMMapPlayback : ma_bool8;
+                  isUsingMMapCapture : ma_bool8;
+                end );
+              4 : ( pulse : record
+                  pMainLoop : ma_ptr;
+                  pPulseContext : ma_ptr;
+                  pStreamPlayback : ma_ptr;
+                  pStreamCapture : ma_ptr;
+                end );
+              5 : ( jack : record
+                  pClient : ma_ptr;
+                  ppPortsPlayback : ^ma_ptr;
+                  ppPortsCapture : ^ma_ptr;
+                  pIntermediaryBufferPlayback : ^single;
+                  pIntermediaryBufferCapture : ^single;
+                end );
+              6 : ( coreaudio : record
+                  deviceObjectIDPlayback : ma_uint32;
+                  deviceObjectIDCapture : ma_uint32;
+                  audioUnitPlayback : ma_ptr;
+                  audioUnitCapture : ma_ptr;
+                  pAudioBufferList : ma_ptr;
+                  audioBufferCapInFrames : ma_uint32;
+                  stopEvent : ma_event;
+                  originalPeriodSizeInFrames : ma_uint32;
+                  originalPeriodSizeInMilliseconds : ma_uint32;
+                  originalPeriods : ma_uint32;
+                  originalPerformanceProfile : ma_performance_profile;
+                  isDefaultPlaybackDevice : ma_bool32;
+                  isDefaultCaptureDevice : ma_bool32;
+                  isSwitchingPlaybackDevice : ma_bool32;
+                  isSwitchingCaptureDevice : ma_bool32;
+                  pNotificationHandler : pointer;
+                end );
+              7 : ( sndio : record
+                  handlePlayback : ma_ptr;
+                  handleCapture : ma_ptr;
+                  isStartedPlayback : ma_bool32;
+                  isStartedCapture : ma_bool32;
+                end );
+              8 : ( audio4 : record
+                  fdPlayback : longint;
+                  fdCapture : longint;
+                end );
+              9 : ( oss : record
+                  fdPlayback : longint;
+                  fdCapture : longint;
+                end );
+              10 : ( aaudio : record
+                  pStreamPlayback : ma_ptr;
+                  pStreamCapture : ma_ptr;
+                  usage : ma_aaudio_usage;
+                  contentType : ma_aaudio_content_type;
+                  inputPreset : ma_aaudio_input_preset;
+                  allowedCapturePolicy : ma_aaudio_allowed_capture_policy;
+                  noAutoStartAfterReroute : ma_bool32;
+                end );
+              11 : ( opensl : record
+                  pOutputMixObj : ma_ptr;
+                  pOutputMix : ma_ptr;
+                  pAudioPlayerObj : ma_ptr;
+                  pAudioPlayer : ma_ptr;
+                  pAudioRecorderObj : ma_ptr;
+                  pAudioRecorder : ma_ptr;
+                  pBufferQueuePlayback : ma_ptr;
+                  pBufferQueueCapture : ma_ptr;
+                  isDrainingCapture : ma_bool32;
+                  isDrainingPlayback : ma_bool32;
+                  currentBufferIndexPlayback : ma_uint32;
+                  currentBufferIndexCapture : ma_uint32;
+                  pBufferPlayback : ^ma_uint8;
+                  pBufferCapture : ^ma_uint8;
+                end );
+              12 : ( webaudio : record
+                  audioContext : longint;
+                  audioWorklet : longint;
+                  pIntermediaryBuffer : ^single;
+                  pStackBuffer : pointer;
+                  initResult : ma_result;
+                  deviceIndex : longint;
+                end );
+              13 : ( null_device : record
+                  deviceThread : ma_thread;
+                  operationEvent : ma_event;
+                  operationCompletionEvent : ma_event;
+                  operationSemaphore : ma_semaphore;
+                  operation : ma_uint32;
+                  operationResult : ma_result;
+                  timer : ma_timer;
+                  priorRunTime : double;
+                  currentPeriodFramesRemainingPlayback : ma_uint32;
+                  currentPeriodFramesRemainingCapture : ma_uint32;
+                  lastProcessedFramePlayback : ma_uint64;
+                  lastProcessedFrameCapture : ma_uint64;
+                  isStarted : ma_atomic_bool32;
+                end );
+            end;
+      end;
 
   {
   Initializes a `ma_context_config` object.
@@ -8653,7 +7243,6 @@ type
   ma_context_init()
    }
 
-  function ma_context_config_init:ma_context_config;cdecl; external;
 
   {
   Initializes a context.
@@ -8867,7 +7456,6 @@ type
    }
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ma_context_init(backends:Pma_backend; backendCount:ma_uint32; pConfig:Pma_context_config; pContext:Pma_context):ma_result;cdecl; external;
 
   {
   Uninitializes a context.
@@ -8892,14 +7480,12 @@ type
   --------
   ma_context_init()
    }
-  function ma_context_uninit(pContext:Pma_context):ma_result;cdecl; external;
 
   {
   Retrieves the size of the ma_context object.
   
   This is mainly for the purpose of bindings to know how much memory to allocate.
    }
-  function ma_context_sizeof:size_t;cdecl; external;
 
   {
   Retrieves a pointer to the log object associated with this context.
@@ -8918,7 +7504,6 @@ type
   A pointer to the `ma_log` object that the context uses to post log messages. If some error occurs,
   NULL will be returned.
    }
-  function ma_context_get_log(pContext:Pma_context):pma_log;cdecl; external;
 
   {
   Enumerates over every device (both playback and capture).
@@ -8985,7 +7570,6 @@ type
   --------
   ma_context_get_devices()
    }
-  function ma_context_enumerate_devices(pContext:Pma_context; callback:ma_enum_devices_callback_proc; pUserData:pointer):ma_result;cdecl; external;
 
   {
   Retrieves basic information about every active playback and/or capture device.
@@ -9036,7 +7620,6 @@ type
   --------
   ma_context_get_devices()
    }
-  function ma_context_get_devices(pContext:Pma_context; ppPlaybackDeviceInfos:PPma_device_info; pPlaybackDeviceCount:Pma_uint32; ppCaptureDeviceInfos:PPma_device_info; pCaptureDeviceCount:Pma_uint32):ma_result;cdecl; external;
 
   {
   Retrieves information about a device of the given type, with the specified ID and share mode.
@@ -9079,7 +7662,6 @@ type
   This leaves pDeviceInfo unmodified in the result of an error.
    }
 (* Const before type ignored *)
-  function ma_context_get_device_info(pContext:Pma_context; deviceType:ma_device_type; pDeviceID:Pma_device_id; pDeviceInfo:Pma_device_info):ma_result;cdecl; external;
 
   {
   Determines if the given context supports loopback mode.
@@ -9095,7 +7677,6 @@ type
   ------------
   MA_TRUE if the context supports loopback mode; MA_FALSE otherwise.
    }
-  function ma_context_is_loopback_supported(pContext:Pma_context):ma_bool32;cdecl; external;
 
   {
   Initializes a device config with default settings.
@@ -9161,7 +7742,6 @@ type
   ma_device_init()
   ma_device_init_ex()
    }
-  function ma_device_config_init(deviceType:ma_device_type):ma_device_config;cdecl; external;
 
   {
   Initializes a device.
@@ -9491,7 +8071,6 @@ type
   ma_context_enumerate_devices()
    }
 (* Const before type ignored *)
-  function ma_device_init(pContext:Pma_context; pConfig:Pma_device_config; pDevice:Pma_device):ma_result;cdecl; external;
 
   {
   Initializes a device without a context, with extra parameters for controlling the configuration of the internal self-managed context.
@@ -9552,7 +8131,6 @@ type
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ma_device_init_ex(backends:Pma_backend; backendCount:ma_uint32; pContextConfig:Pma_context_config; pConfig:Pma_device_config; pDevice:Pma_device):ma_result;cdecl; external;
 
   {
   Uninitializes a device.
@@ -9586,17 +8164,14 @@ type
   ma_device_init()
   ma_device_stop()
    }
-  procedure ma_device_uninit(pDevice:Pma_device);cdecl; external;
 
   {
   Retrieves a pointer to the context that owns the given device.
    }
-  function ma_device_get_context(pDevice:Pma_device):Pma_context;cdecl; external;
 
   {
   Helper function for retrieving the log object associated with the context that owns this device.
    }
-  function ma_device_get_log(pDevice:Pma_device):Pma_log;cdecl; external;
 
   {
   Retrieves information about the device.
@@ -9631,7 +8206,6 @@ type
   Unsafe. You should avoid calling this in the data callback because it may call into the backend
   which may or may not be safe.
    }
-  function ma_device_get_info(pDevice:Pma_device; _type:ma_device_type; pDeviceInfo:Pma_device_info):ma_result;cdecl; external;
 
   {
   Retrieves the name of the device.
@@ -9683,7 +8257,6 @@ type
   
   This is implemented in terms of `ma_device_get_info()`.
    }
-  function ma_device_get_name(pDevice:Pma_device; _type:ma_device_type; pName:Pchar; nameCap:size_t; pLengthNotIncludingNullTerminator:Psize_t):ma_result;cdecl; external;
 
   {
   Starts the device. For playback devices this begins playback. For capture devices it begins recording.
@@ -9726,7 +8299,6 @@ type
   --------
   ma_device_stop()
    }
-  function ma_device_start(pDevice:Pma_device):ma_result;cdecl; external;
 
   {
   Stops the device. For playback devices this stops playback. For capture devices it stops recording.
@@ -9774,7 +8346,6 @@ type
   --------
   ma_device_start()
    }
-  function ma_device_stop(pDevice:Pma_device):ma_result;cdecl; external;
 
   {
   Determines whether or not the device is started.
@@ -9808,7 +8379,6 @@ type
   ma_device_stop()
    }
 (* Const before type ignored *)
-  function ma_device_is_started(pDevice:Pma_device):ma_bool32;cdecl; external;
 
   {
   Retrieves the state of the device.
@@ -9863,7 +8433,6 @@ type
   synchronization.
    }
 (* Const before type ignored *)
-  function ma_device_get_state(pDevice:Pma_device):ma_device_state;cdecl; external;
 
   {
   Performs post backend initialization routines for setting up internal data conversion.
@@ -9913,7 +8482,6 @@ type
    }
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ma_device_post_init(pDevice:Pma_device; deviceType:ma_device_type; pPlaybackDescriptor:Pma_device_descriptor; pCaptureDescriptor:Pma_device_descriptor):ma_result;cdecl; external;
 
   {
   Sets the master volume factor for the device.
@@ -9961,7 +8529,6 @@ type
   ma_device_set_master_volume_db()
   ma_device_get_master_volume_db()
    }
-  function ma_device_set_master_volume(pDevice:Pma_device; volume:single):ma_result;cdecl; external;
 
   {
   Retrieves the master volume factor for the device.
@@ -10004,7 +8571,6 @@ type
   ma_device_set_master_volume_gain_db()
   ma_device_get_master_volume_gain_db()
    }
-  function ma_device_get_master_volume(pDevice:Pma_device; pVolume:Psingle):ma_result;cdecl; external;
 
   {
   Sets the master volume for the device as gain in decibels.
@@ -10051,7 +8617,6 @@ type
   ma_device_set_master_volume()
   ma_device_get_master_volume()
    }
-  function ma_device_set_master_volume_db(pDevice:Pma_device; gainDB:single):ma_result;cdecl; external;
 
   {
   Retrieves the master gain in decibels.
@@ -10094,7 +8659,6 @@ type
   ma_device_set_master_volume()
   ma_device_get_master_volume()
    }
-  function ma_device_get_master_volume_db(pDevice:Pma_device; pGainDB:Psingle):ma_result;cdecl; external;
 
   {
   Called from the data callback of asynchronous backends to allow miniaudio to process the data and fire the miniaudio data callback.
@@ -10142,7 +8706,6 @@ type
   callback.
    }
 (* Const before type ignored *)
-  function ma_device_handle_backend_data_callback(pDevice:Pma_device; pOutput:pointer; pInput:pointer; frameCount:ma_uint32):ma_result;cdecl; external;
 
   {
   Calculates an appropriate buffer size from a descriptor, native sample rate and performance profile.
@@ -10195,24 +8758,20 @@ type
   is also zero, `MA_DEFAULT_SAMPLE_RATE` will be used instead.
    }
 (* Const before type ignored *)
-  function ma_calculate_buffer_size_in_frames_from_descriptor(pDescriptor:Pma_device_descriptor; nativeSampleRate:ma_uint32; performanceProfile:ma_performance_profile):ma_uint32;cdecl; external;
 
   {
   Retrieves a friendly name for a backend.
    }
 (* Const before type ignored *)
-  function ma_get_backend_name(backend:ma_backend):pchar;cdecl; external;
 
   {
   Retrieves the backend enum from the given name.
    }
 (* Const before type ignored *)
-  function ma_get_backend_from_name(pBackendName:Pchar; pBackend:Pma_backend):ma_result;cdecl; external;
 
   {
   Determines whether or not the given backend is available by the compilation environment.
    }
-  function ma_is_backend_enabled(backend:ma_backend):ma_bool32;cdecl; external;
 
   {
   Retrieves compile-time enabled backends.
@@ -10285,12 +8844,10 @@ type
   --------
   ma_is_backend_enabled()
    }
-  function ma_get_enabled_backends(pBackends:Pma_backend; backendCap:size_t; pBackendCount:Psize_t):ma_result;cdecl; external;
 
   {
   Determines whether or not loopback mode is support by a backend.
    }
-  function ma_is_loopback_supported(backend:ma_backend):ma_bool32;cdecl; external;
 
 {$endif}
   { MA_NO_DEVICE_IO  }
@@ -10303,18 +8860,15 @@ type
   Calculates a buffer size in milliseconds from the specified number of frames and sample rate.
    }
 
-  function ma_calculate_buffer_size_in_milliseconds_from_frames(bufferSizeInFrames:ma_uint32; sampleRate:ma_uint32):ma_uint32;cdecl; external;
 
   {
   Calculates a buffer size in frames from the specified number of milliseconds and sample rate.
    }
-  function ma_calculate_buffer_size_in_frames_from_milliseconds(bufferSizeInMilliseconds:ma_uint32; sampleRate:ma_uint32):ma_uint32;cdecl; external;
 
   {
   Copies PCM frames from one buffer to another.
    }
 (* Const before type ignored *)
-  procedure ma_copy_pcm_frames(dst:pointer; src:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32);cdecl; external;
 
   {
   Copies silent frames into the given buffer.
@@ -10324,138 +8878,22 @@ type
   For all formats except `ma_format_u8`, the output buffer will be filled with 0. For `ma_format_u8` it will be filled with 128. The reason for this is that it
   makes more sense for the purpose of mixing to initialize it to the center point.
    }
-  procedure ma_silence_pcm_frames(p:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32);cdecl; external;
 
   {
   Offsets a pointer by the specified number of PCM frames.
    }
-  function ma_offset_pcm_frames_ptr(p:pointer; offsetInFrames:ma_uint64; format:ma_format; channels:ma_uint32):pointer;cdecl; external;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ma_offset_pcm_frames_const_ptr(p:pointer; offsetInFrames:ma_uint64; format:ma_format; channels:ma_uint32):pointer;cdecl; external;
 
+  {static MA_INLINE float* ma_offset_pcm_frames_ptr_f32(float* p, ma_uint64 offsetInFrames, ma_uint32 channels)  return (float*)ma_offset_pcm_frames_ptr((void*)p, offsetInFrames, ma_format_f32, channels);  }
+  {static MA_INLINE const float* ma_offset_pcm_frames_const_ptr_f32(const float* p, ma_uint64 offsetInFrames, ma_uint32 channels)  return (const float*)ma_offset_pcm_frames_const_ptr((const void*)p, offsetInFrames, ma_format_f32, channels);  }
   {
   Clips samples.
    }
 (* Const before type ignored *)
-  procedure ma_clip_samples_u8(pDst:Pma_uint8; pSrc:Pma_int16; count:ma_uint64);cdecl; external;
 
 (* Const before type ignored *)
-  procedure ma_clip_samples_s16(pDst:Pma_int16; pSrc:Pma_int32; count:ma_uint64);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_clip_samples_s24(pDst:Pma_uint8; pSrc:Pma_int64; count:ma_uint64);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_clip_samples_s32(pDst:Pma_int32; pSrc:Pma_int64; count:ma_uint64);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_clip_samples_f32(pDst:Psingle; pSrc:Psingle; count:ma_uint64);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_clip_pcm_frames(pDst:pointer; pSrc:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32);cdecl; external;
-
-  {
-  Helper for applying a volume factor to samples.
-  
-  Note that the source and destination buffers can be the same, in which case it'll perform the operation in-place.
-   }
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_u8(pSamplesOut:Pma_uint8; pSamplesIn:Pma_uint8; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_s16(pSamplesOut:Pma_int16; pSamplesIn:Pma_int16; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_s24(pSamplesOut:pointer; pSamplesIn:pointer; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_s32(pSamplesOut:Pma_int32; pSamplesIn:Pma_int32; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_f32(pSamplesOut:Psingle; pSamplesIn:Psingle; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_u8(pSamples:Pma_uint8; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_s16(pSamples:Pma_int16; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_s24(pSamples:pointer; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_s32(pSamples:Pma_int32; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_f32(pSamples:Psingle; sampleCount:ma_uint64; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_pcm_frames_u8(pFramesOut:Pma_uint8; pFramesIn:Pma_uint8; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_pcm_frames_s16(pFramesOut:Pma_int16; pFramesIn:Pma_int16; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_pcm_frames_s24(pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_pcm_frames_s32(pFramesOut:Pma_int32; pFramesIn:Pma_int32; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_pcm_frames_f32(pFramesOut:Psingle; pFramesIn:Psingle; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_pcm_frames(pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32; 
-              factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_pcm_frames_u8(pFrames:Pma_uint8; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_pcm_frames_s16(pFrames:Pma_int16; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_pcm_frames_s24(pFrames:pointer; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_pcm_frames_s32(pFrames:Pma_int32; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_pcm_frames_f32(pFrames:Psingle; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
-
-  procedure ma_apply_volume_factor_pcm_frames(pFrames:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32; factor:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_factor_per_channel_f32(pFramesOut:Psingle; pFramesIn:Psingle; frameCount:ma_uint64; channels:ma_uint32; pChannelGains:Psingle);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_and_clip_samples_u8(pDst:Pma_uint8; pSrc:Pma_int16; count:ma_uint64; volume:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_and_clip_samples_s16(pDst:Pma_int16; pSrc:Pma_int32; count:ma_uint64; volume:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_and_clip_samples_s24(pDst:Pma_uint8; pSrc:Pma_int64; count:ma_uint64; volume:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_and_clip_samples_s32(pDst:Pma_int32; pSrc:Pma_int64; count:ma_uint64; volume:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_and_clip_samples_f32(pDst:Psingle; pSrc:Psingle; count:ma_uint64; volume:single);cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_copy_and_apply_volume_and_clip_pcm_frames(pDst:pointer; pSrc:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32; 
-              volume:single);cdecl; external;
-
-  {
-  Helper for converting a linear factor to gain in decibels.
-   }
-  function ma_volume_linear_to_db(factor:single):single;cdecl; external;
-
-  {
-  Helper for converting gain in decibels to a linear factor.
-   }
-  function ma_volume_db_to_linear(gain:single):single;cdecl; external;
-
-  {
-  Mixes the specified number of frames in floating point format with a volume factor.
-  
-  This will run on an optimized path when the volume is equal to 1.
-   }
-(* Const before type ignored *)
-  function ma_mix_pcm_frames_f32(pDst:Psingle; pSrc:Psingle; frameCount:ma_uint64; channels:ma_uint32; volume:single):ma_result;cdecl; external;
 
   {***********************************************************************************************************************************************************
   
@@ -10467,13 +8905,9 @@ type
   
   *********************************************************************************************************************************************************** }
 
-  type
     ma_vfs = pointer;
-    Pma_vfs  = ^ma_vfs;
 
     ma_vfs_file = ma_handle;
-    Pma_vfs_file  = ^ma_vfs_file;
-    Pwchar_t = ^wchar_t;
 
     ma_open_mode_flags = (MA_OPEN_MODE_READ := $00000001,MA_OPEN_MODE_WRITE := $00000002
       );
@@ -10485,7 +8919,6 @@ type
     ma_file_info = record
         sizeInBytes : ma_uint64;
       end;
-      Pma_file_info  = ^ma_file_info;
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
@@ -10502,42 +8935,14 @@ type
       end;
 (* Const before type ignored *)
 
-  function ma_vfs_open(pVFS:Pma_vfs; pFilePath:Pchar; openMode:ma_uint32; pFile:Pma_vfs_file):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_vfs_open_w(pVFS:Pma_vfs; pFilePath:Pwchar_t; openMode:ma_uint32; pFile:Pma_vfs_file):ma_result;cdecl; external;
-
-  function ma_vfs_close(pVFS:Pma_vfs; vfile:ma_vfs_file):ma_result;cdecl; external;
-
-  function ma_vfs_read(pVFS:Pma_vfs; vfile:ma_vfs_file; pDst:pointer; sizeInBytes:size_t; pBytesRead:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_vfs_write(pVFS:Pma_vfs; vfile:ma_vfs_file; pSrc:pointer; sizeInBytes:size_t; pBytesWritten:Psize_t):ma_result;cdecl; external;
-
-  function ma_vfs_seek(pVFS:Pma_vfs; vfile:ma_vfs_file; offset:ma_int64; origin:ma_seek_origin):ma_result;cdecl; external;
-
-  function ma_vfs_tell(pVFS:Pma_vfs; vfile:ma_vfs_file; pCursor:Pma_int64):ma_result;cdecl; external;
-
-  function ma_vfs_info(pVFS:Pma_vfs; vfile:ma_vfs_file; pInfo:Pma_file_info):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_vfs_open_and_read_file(pVFS:Pma_vfs; pFilePath:Pchar; ppData:Ppointer; pSize:Psize_t; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
-
   { Only used for the wchar_t version of open() on non-Windows platforms.  }
 
-  type
     ma_default_vfs = record
         cb : ma_vfs_callbacks;
         allocationCallbacks : ma_allocation_callbacks;
       end;
-  Pma_default_vfs  = ^ma_default_vfs;
 (* Const before type ignored *)
 
-  function ma_default_vfs_init(pVFS:Pma_default_vfs; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
-
-
-  type
 
     ma_read_proc = function (pUserData:pointer; pBufferOut:pointer; bytesToRead:size_t; pBytesRead:Psize_t):ma_result;cdecl;
 
@@ -10546,7 +8951,6 @@ type
     ma_tell_proc = function (pUserData:pointer; pCursor:Pma_int64):ma_result;cdecl;
 {$if NOT defined(MA_NO_DECODING) OR NOT defined(MA_NO_ENCODING)}
 
-  type
     ma_encoding_format = (ma_encoding_format_unknown := 0,ma_encoding_format_wav,
       ma_encoding_format_flac,ma_encoding_format_mp3,
       ma_encoding_format_vorbis);
@@ -10562,7 +8966,6 @@ type
   *********************************************************************************************************************************************************** }
 {$ifndef MA_NO_DECODING}
 
-  type
   { Set to > 0 to generate a seektable if the decoding backend supports it.  }
 
     ma_decoding_backend_config = record
@@ -10570,7 +8973,6 @@ type
         seekPointCount : ma_uint32;
       end;
 
-  function ma_decoding_backend_config_init(preferredFormat:ma_format; seekPointCount:ma_uint32):ma_decoding_backend_config;cdecl; external;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
@@ -10588,9 +8990,8 @@ type
   { Optional.  }
 (* Const before type ignored *)
 
-  type
-    Pma_decoding_backend_config  = ^ma_decoding_backend_config;
-  Pma_decoder  = ^ma_decoder;
+    Pma_decoding_backend_vtable = ^ma_decoding_backend_vtable;
+    PPma_decoding_backend_vtable = ^Pma_decoding_backend_vtable;
     ma_decoding_backend_vtable = record
         onInit : function (pUserData:pointer; onRead:ma_read_proc; onSeek:ma_seek_proc; onTell:ma_tell_proc; pReadSeekTellUserData:pointer; 
                      pConfig:Pma_decoding_backend_config; pAllocationCallbacks:Pma_allocation_callbacks; ppBackend:PPma_data_source):ma_result;cdecl;
@@ -10600,7 +9001,6 @@ type
                      ppBackend:PPma_data_source):ma_result;cdecl;
         onUninit : procedure (pUserData:pointer; pBackend:Pma_data_source; pAllocationCallbacks:Pma_allocation_callbacks);cdecl;
       end;
-    Pma_decoding_backend_vtable = ^ma_decoding_backend_vtable;
 
     ma_decoder_read_proc = function (pDecoder:Pma_decoder; pBufferOut:pointer; bytesToRead:size_t; pBytesRead:Psize_t):ma_result;cdecl;
   { Returns the number of bytes read.  }
@@ -10613,7 +9013,6 @@ type
   { Set to 0 to use the stream's internal sample rate.  }
   { When set to > 0, specifies the number of seek points to use for the generation of a seek table. Not all decoding backends support this.  }
 
-    PPma_decoding_backend_vtable = ^Pma_decoding_backend_vtable;
     ma_decoder_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -10643,7 +9042,7 @@ type
     ma_decoder = record
         ds : ma_data_source_base;
         pBackend : ^ma_data_source;
-        pBackendVTable : Pma_decoding_backend_vtable;
+        pBackendVTable : ^ma_decoding_backend_vtable;
         pBackendUserData : pointer;
         onRead : ma_decoder_read_proc;
         onSeek : ma_decoder_seek_proc;
@@ -10672,105 +9071,7 @@ type
                 end );
             end;
       end;
-  Pma_decoder_config  = ^ma_decoder_config;
 
-
-  function ma_decoder_config_init(outputFormat:ma_format; outputChannels:ma_uint32; outputSampleRate:ma_uint32):ma_decoder_config;cdecl; external;
-
-  function ma_decoder_config_init_default:ma_decoder_config;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_decoder_init(onRead:ma_decoder_read_proc; onSeek:ma_decoder_seek_proc; pUserData:pointer; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_decoder_init_memory(pData:pointer; dataSize:size_t; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_decoder_init_vfs(pVFS:Pma_vfs; pFilePath:Pchar; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_decoder_init_vfs_w(pVFS:Pma_vfs; pFilePath:Pwchar_t; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_decoder_init_file(pFilePath:Pchar; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_decoder_init_file_w(pFilePath:Pwchar_t; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-  {
-  Uninitializes a decoder.
-   }
-  function ma_decoder_uninit(pDecoder:Pma_decoder):ma_result;cdecl; external;
-
-  {
-  Reads PCM frames from the given decoder.
-  
-  This is not thread safe without your own synchronization.
-   }
-  function ma_decoder_read_pcm_frames(pDecoder:Pma_decoder; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Seeks to a PCM frame based on it's absolute index.
-  
-  This is not thread safe without your own synchronization.
-   }
-  function ma_decoder_seek_to_pcm_frame(pDecoder:Pma_decoder; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  {
-  Retrieves the decoder's output data format.
-   }
-  function ma_decoder_get_data_format(pDecoder:Pma_decoder; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
-             channelMapCap:size_t):ma_result;cdecl; external;
-
-  {
-  Retrieves the current position of the read cursor in PCM frames.
-   }
-  function ma_decoder_get_cursor_in_pcm_frames(pDecoder:Pma_decoder; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Retrieves the length of the decoder in PCM frames.
-  
-  Do not call this on streams of an undefined length, such as internet radio.
-  
-  If the length is unknown or an error occurs, 0 will be returned.
-  
-  This will always return 0 for Vorbis decoders. This is due to a limitation with stb_vorbis in push mode which is what miniaudio
-  uses internally.
-  
-  For MP3's, this will decode the entire file. Do not call this in time critical scenarios.
-  
-  This function is not thread safe without your own synchronization.
-   }
-  function ma_decoder_get_length_in_pcm_frames(pDecoder:Pma_decoder; pLength:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Retrieves the number of frames that can be read before reaching the end.
-  
-  This calls `ma_decoder_get_length_in_pcm_frames()` so you need to be aware of the rules for that function, in
-  particular ensuring you do not call it on streams of an undefined length, such as internet radio.
-  
-  If the total length of the decoder cannot be retrieved, such as with Vorbis decoders, `MA_NOT_IMPLEMENTED` will be
-  returned.
-   }
-  function ma_decoder_get_available_frames(pDecoder:Pma_decoder; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
-
-  {
-  Helper for opening and decoding a file into a heap allocated block of memory. Free the returned pointer with ma_free(). On input,
-  pConfig should be set to what you want. On output it will be set to what you got.
-   }
-(* Const before type ignored *)
-  function ma_decode_from_vfs(pVFS:Pma_vfs; pFilePath:Pchar; pConfig:Pma_decoder_config; pFrameCountOut:Pma_uint64; ppPCMFramesOut:Ppointer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_decode_file(pFilePath:Pchar; pConfig:Pma_decoder_config; pFrameCountOut:Pma_uint64; ppPCMFramesOut:Ppointer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_decode_memory(pData:pointer; dataSize:size_t; pConfig:Pma_decoder_config; pFrameCountOut:Pma_uint64; ppPCMFramesOut:Ppointer):ma_result;cdecl; external;
 
 {$endif}
   { MA_NO_DECODING  }
@@ -10784,7 +9085,19 @@ type
   *********************************************************************************************************************************************************** }
 {$ifndef MA_NO_ENCODING}
 
-  type
+(* Const before type ignored *)
+
+    ma_encoder_write_proc = function (pEncoder:Pma_encoder; pBufferIn:pointer; bytesToWrite:size_t; pBytesWritten:Psize_t):ma_result;cdecl;
+
+    ma_encoder_seek_proc = function (pEncoder:Pma_encoder; offset:ma_int64; origin:ma_seek_origin):ma_result;cdecl;
+
+    ma_encoder_init_proc = function (pEncoder:Pma_encoder):ma_result;cdecl;
+
+    ma_encoder_uninit_proc = procedure (pEncoder:Pma_encoder);cdecl;
+(* Const before type ignored *)
+
+    ma_encoder_write_pcm_frames_proc = function (pEncoder:Pma_encoder; pFramesIn:pointer; frameCount:ma_uint64; pFramesWritten:Pma_uint64):ma_result;cdecl;
+
     ma_encoder_config = record
         encodingFormat : ma_encoding_format;
         format : ma_format;
@@ -10793,14 +9106,8 @@ type
         allocationCallbacks : ma_allocation_callbacks;
       end;
 
-      Pma_encoder  = ^ma_encoder;
-    ma_encoder_write_proc = function (pEncoder:Pma_encoder; pBufferIn:pointer; bytesToWrite:size_t; pBytesWritten:Psize_t):ma_result;cdecl;
-    ma_encoder_seek_proc = function (pEncoder:Pma_encoder; offset:ma_int64; origin:ma_seek_origin):ma_result;cdecl;
 
-    ma_encoder_init_proc = function (pEncoder:Pma_encoder):ma_result;cdecl;
 
-    ma_encoder_uninit_proc = procedure (pEncoder:Pma_encoder);cdecl;
-    ma_encoder_write_pcm_frames_proc = function (pEncoder:Pma_encoder; pFramesIn:pointer; frameCount:ma_uint64; pFramesWritten:Pma_uint64):ma_result;cdecl;
     ma_encoder = record
         config : ma_encoder_config;
         onWrite : ma_encoder_write_proc;
@@ -10818,41 +9125,9 @@ type
                 end );
             end;
       end;
-  Pma_encoder_config  = ^ma_encoder_config;
-(* Const before type ignored *)
-
 
 (* Const before type ignored *)
 
-
-  function ma_encoder_config_init(encodingFormat:ma_encoding_format; format:ma_format; channels:ma_uint32; sampleRate:ma_uint32):ma_encoder_config;cdecl; external;
-
-
-
-(* Const before type ignored *)
-
-  function ma_encoder_init(onWrite:ma_encoder_write_proc; onSeek:ma_encoder_seek_proc; pUserData:pointer; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_encoder_init_vfs(pVFS:Pma_vfs; pFilePath:Pchar; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_encoder_init_vfs_w(pVFS:Pma_vfs; pFilePath:Pwchar_t; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_encoder_init_file(pFilePath:Pchar; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_encoder_init_file_w(pFilePath:Pwchar_t; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
-
-  procedure ma_encoder_uninit(pEncoder:Pma_encoder);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_encoder_write_pcm_frames(pEncoder:Pma_encoder; pFramesIn:pointer; frameCount:ma_uint64; pFramesWritten:Pma_uint64):ma_result;cdecl; external;
 
 {$endif}
   { MA_NO_ENCODING  }
@@ -10863,7 +9138,6 @@ type
   *********************************************************************************************************************************************************** }
 {$ifndef MA_NO_GENERATION}
 
-  type
     ma_waveform_type = (ma_waveform_type_sine,ma_waveform_type_square,
       ma_waveform_type_triangle,ma_waveform_type_sawtooth
       );
@@ -10877,39 +9151,17 @@ type
         frequency : double;
       end;
 
-  function ma_waveform_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; _type:ma_waveform_type; amplitude:double; 
-             frequency:double):ma_waveform_config;cdecl; external;
 
 
-  type
     ma_waveform = record
         ds : ma_data_source_base;
         config : ma_waveform_config;
         advance : double;
         time : double;
       end;
-  Pma_waveform_config  = ^ma_waveform_config;
-  Pma_waveform  = ^ma_waveform;
 (* Const before type ignored *)
 
-  function ma_waveform_init(pConfig:Pma_waveform_config; pWaveform:Pma_waveform):ma_result;cdecl; external;
 
-  procedure ma_waveform_uninit(pWaveform:Pma_waveform);cdecl; external;
-
-  function ma_waveform_read_pcm_frames(pWaveform:Pma_waveform; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_waveform_seek_to_pcm_frame(pWaveform:Pma_waveform; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_waveform_set_amplitude(pWaveform:Pma_waveform; amplitude:double):ma_result;cdecl; external;
-
-  function ma_waveform_set_frequency(pWaveform:Pma_waveform; frequency:double):ma_result;cdecl; external;
-
-  function ma_waveform_set_type(pWaveform:Pma_waveform; _type:ma_waveform_type):ma_result;cdecl; external;
-
-  function ma_waveform_set_sample_rate(pWaveform:Pma_waveform; sampleRate:ma_uint32):ma_result;cdecl; external;
-
-
-  type
     ma_pulsewave_config = record
         format : ma_format;
         channels : ma_uint32;
@@ -10919,37 +9171,13 @@ type
         frequency : double;
       end;
 
-  function ma_pulsewave_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; dutyCycle:double; amplitude:double; 
-             frequency:double):ma_pulsewave_config;cdecl; external;
 
-
-  type
     ma_pulsewave = record
         waveform : ma_waveform;
         config : ma_pulsewave_config;
       end;
-  Pma_pulsewave  = ^ma_pulsewave;
-  Pma_pulsewave_config  = ^ma_pulsewave_config;
 (* Const before type ignored *)
 
-  function ma_pulsewave_init(pConfig:Pma_pulsewave_config; pWaveform:Pma_pulsewave):ma_result;cdecl; external;
-
-  procedure ma_pulsewave_uninit(pWaveform:Pma_pulsewave);cdecl; external;
-
-  function ma_pulsewave_read_pcm_frames(pWaveform:Pma_pulsewave; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_pulsewave_seek_to_pcm_frame(pWaveform:Pma_pulsewave; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_pulsewave_set_amplitude(pWaveform:Pma_pulsewave; amplitude:double):ma_result;cdecl; external;
-
-  function ma_pulsewave_set_frequency(pWaveform:Pma_pulsewave; frequency:double):ma_result;cdecl; external;
-
-  function ma_pulsewave_set_sample_rate(pWaveform:Pma_pulsewave; sampleRate:ma_uint32):ma_result;cdecl; external;
-
-  function ma_pulsewave_set_duty_cycle(pWaveform:Pma_pulsewave; dutyCycle:double):ma_result;cdecl; external;
-
-
-  type
     ma_noise_type = (ma_noise_type_white,ma_noise_type_pink,
       ma_noise_type_brownian);
 
@@ -10962,13 +9190,9 @@ type
         duplicateChannels : ma_bool32;
       end;
 
-  function ma_noise_config_init(format:ma_format; channels:ma_uint32; _type:ma_noise_type; seed:ma_int32; amplitude:double):ma_noise_config;cdecl; external;
 
   { Memory management.  }
 
-  type
-    pdoulbe = ^double;
-    ppdouble = ^pdouble;
     ma_noise = record
         ds : ma_data_source_vtable;
         config : ma_noise_config;
@@ -10976,40 +9200,19 @@ type
         state : record
             case longint of
               0 : ( pink : record
-                  bin : ppdouble;
-                  accumulation : pdouble;
-                  counter : pma_uint32;
+                  bin : PPdouble;
+                  accumulation : Pdouble;
+                  counter : ^ma_uint32;
                 end );
               1 : ( brownian : record
-                  accumulation : pdouble;
+                  accumulation : Pdouble;
                 end );
             end;
         _pHeap : pointer;
         _ownsHeap : ma_bool32;
       end;
-  Pma_noise_config  = ^ma_noise_config;
-  Pma_noise = ^ma_noise;
 (* Const before type ignored *)
 
-  function ma_noise_get_heap_size(pConfig:Pma_noise_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_noise_init_preallocated(pConfig:Pma_noise_config; pHeap:pointer; pNoise:Pma_noise):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_noise_init(pConfig:Pma_noise_config; pAllocationCallbacks:Pma_allocation_callbacks; pNoise:Pma_noise):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_noise_uninit(pNoise:Pma_noise; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  function ma_noise_read_pcm_frames(pNoise:Pma_noise; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_noise_set_amplitude(pNoise:Pma_noise; amplitude:double):ma_result;cdecl; external;
-
-  function ma_noise_set_seed(pNoise:Pma_noise; seed:ma_int32):ma_result;cdecl; external;
-
-  function ma_noise_set_type(pNoise:Pma_noise; _type:ma_noise_type):ma_result;cdecl; external;
 
 {$endif}
   { MA_NO_GENERATION  }
@@ -11019,12 +9222,9 @@ type
   
   *********************************************************************************************************************************************************** }
   { The resource manager cannot be enabled if there is no decoder.  }
-{$if NOT defined(MA_NO_RESOURCE_MANAGER) AND defined(MA_NO_DECODING)}
-{$define MA_NO_RESOURCE_MANAGER}  
-{$endif}
+
 {$ifndef MA_NO_RESOURCE_MANAGER}
 
-  type
   { When set, does not load the entire data source in memory. Disk I/O will happen on job threads.  }
   { Decode data before storing in memory. When set, decoding is done at the resource manager level rather than the mixing thread. Results in faster mixing, but higher memory usage.  }
   { When set, the resource manager will load the data source asynchronously.  }
@@ -11053,19 +9253,11 @@ type
         done : ma_resource_manager_pipeline_stage_notification;
       end;
 
-  function ma_resource_manager_pipeline_notifications_init:ma_resource_manager_pipeline_notifications;cdecl; external;
-
   { BEGIN BACKWARDS COMPATIBILITY  }
-  { Maximum job thread count will be restricted to this, but this may be removed later and replaced with a heap allocation thereby removing any limitation.  }
-{$ifndef MA_RESOURCE_MANAGER_MAX_JOB_THREAD_COUNT}
-
-  const
-    MA_RESOURCE_MANAGER_MAX_JOB_THREAD_COUNT = 64;    
-{$endif}
+  { TODO: Remove this block in version 0.12.  }
   { Indicates ma_resource_manager_next_job() should not block. Only valid when the job thread count is 0.  }
   { Disables any kind of multithreading. Implicitly enables MA_RESOURCE_MANAGER_FLAG_NON_BLOCKING.  }
 
-  type
     ma_resource_manager_flags = (MA_RESOURCE_MANAGER_FLAG_NON_BLOCKING := $00000001,
       MA_RESOURCE_MANAGER_FLAG_NO_THREADING := $00000002
       );
@@ -11074,7 +9266,7 @@ type
 (* Const before type ignored *)
 
     ma_resource_manager_data_source_config = record
-        pFilePath : pchar;
+        pFilePath : ^char;
         pFilePathW : ^wchar_t;
         pNotifications : ^ma_resource_manager_pipeline_notifications;
         initialSeekPointInPCMFrames : ma_uint64;
@@ -11086,20 +9278,18 @@ type
         flags : ma_uint32;
       end;
 
-  function ma_resource_manager_data_source_config_init:ma_resource_manager_data_source_config;cdecl; external;
 
   { Used for determining whether or the data supply has been initialized.  }
   { Data supply is an encoded buffer. Connector is ma_decoder.  }
   { Data supply is a decoded buffer. Connector is ma_audio_buffer.  }
   { Data supply is a linked list of decoded buffers. Connector is ma_paged_audio_buffer.  }
 
-  type
     ma_resource_manager_data_supply_type = (ma_resource_manager_data_supply_type_unknown := 0,
       ma_resource_manager_data_supply_type_encoded,
       ma_resource_manager_data_supply_type_decoded,
       ma_resource_manager_data_supply_type_decoded_paged
       );
-  { Read and written from different threads so needs to be accessed atomically.  }
+  {_Alignas(4) }  { Read and written from different threads so needs to be accessed atomically.  }
 (* Const before type ignored *)
 (* Const before type ignored *)
 
@@ -11127,9 +9317,9 @@ type
             end;
       end;
   { The hashed name. This is the key.  }
-  { Result from asynchronous loading. When loading set to MA_BUSY. When fully loaded set to MA_SUCCESS. When deleting set to MA_UNAVAILABLE.  }
-  { For allocating execution orders for jobs.  }
-  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
+  {_Alignas(4) }  { Result from asynchronous loading. When loading set to MA_BUSY. When fully loaded set to MA_SUCCESS. When deleting set to MA_UNAVAILABLE.  }
+  {_Alignas(4) }  { For allocating execution orders for jobs.  }
+  {_Alignas(4) }  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
   { Set to true when the underlying data buffer was allocated the resource manager. Set to false if it is owned by the application (via ma_resource_manager_register_*()).  }
     ma_resource_manager_data_buffer_node = record
         hashedName32 : ma_uint32;
@@ -11148,12 +9338,12 @@ type
   { A pointer to the resource manager that owns this buffer.  }
   { The data node. This is reference counted and is what supplies the data.  }
   { The flags that were passed used to initialize the buffer.  }
-  { For allocating execution orders for jobs.  }
-  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
+  {_Alignas(4) }  { For allocating execution orders for jobs.  }
+  {_Alignas(4) }  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
   { Only updated by the public API. Never written nor read from the job thread.  }
   { On the next read we need to seek to the frame cursor.  }
-  { Keeps track of a result of decoding. Set to MA_BUSY while the buffer is still loading. Set to MA_SUCCESS when loading is finished successfully. Otherwise set to some other code.  }
-  { Can be read and written by different threads at the same time. Must be used atomically.  }
+  {_Alignas(4) }  { Keeps track of a result of decoding. Set to MA_BUSY while the buffer is still loading. Set to MA_SUCCESS when loading is finished successfully. Otherwise set to some other code.  }
+  {_Alignas(4) }  { Can be read and written by different threads at the same time. Must be used atomically.  }
   { Used for asynchronous loading to ensure we don't try to initialize the connector multiple times while waiting for the node to fully load.  }
   { Supply type is ma_resource_manager_data_supply_type_encoded  }
   { Supply type is ma_resource_manager_data_supply_type_decoded  }
@@ -11161,7 +9351,7 @@ type
   { Connects this object to the node's data supply.  }
     ma_resource_manager_data_buffer = record
         ds : ma_data_source_base;
-        pResourceManager : pointer; { ^ma_resource_manager;}
+        pResourceManager : ^ma_resource_manager;
         pNode : ^ma_resource_manager_data_buffer_node;
         flags : ma_uint32;
         executionCounter : ma_uint32;
@@ -11186,23 +9376,23 @@ type
   { Required for determining whether or not the decoder should be uninitialized in MA_JOB_TYPE_RESOURCE_MANAGER_FREE_DATA_STREAM.  }
   { This is calculated when first loaded by the MA_JOB_TYPE_RESOURCE_MANAGER_LOAD_DATA_STREAM.  }
   { The playback cursor, relative to the current page. Only ever accessed by the public API. Never accessed by the job thread.  }
-  { The playback cursor, in absolute position starting from the start of the file.  }
+  {_Alignas(8) }  { The playback cursor, in absolute position starting from the start of the file.  }
   { Toggles between 0 and 1. Index 0 is the first half of pPageData. Index 1 is the second half. Only ever accessed by the public API. Never accessed by the job thread.  }
-  { For allocating execution orders for jobs.  }
-  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
+  {_Alignas(4) }  { For allocating execution orders for jobs.  }
+  {_Alignas(4) }  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
   { Written by the public API, read by the job thread.  }
-  { Whether or not the stream is looping. It's important to set the looping flag at the data stream level for smooth loop transitions.  }
+  {_Alignas(4) }  { Whether or not the stream is looping. It's important to set the looping flag at the data stream level for smooth loop transitions.  }
   { Written by the job thread, read by the public API.  }
   { Buffer containing the decoded data of each page. Allocated once at initialization time.  }
-  { The number of valid PCM frames in each page. Used to determine the last valid frame.  }
+  {_Alignas(4) }  { The number of valid PCM frames in each page. Used to determine the last valid frame.  }
   { Written and read by both the public API and the job thread. These must be atomic.  }
-  { Result from asynchronous loading. When loading set to MA_BUSY. When initialized set to MA_SUCCESS. When deleting set to MA_UNAVAILABLE. If an error occurs when loading, set to an error code.  }
-  { Whether or not the decoder has reached the end.  }
-  { Booleans to indicate whether or not a page is valid. Set to false by the public API, set to true by the job thread. Set to false as the pages are consumed, true when they are filled.  }
-  { When 0, no seeking is being performed. When > 0, a seek is being performed and reading should be delayed with MA_BUSY.  }
+  {_Alignas(4) }  { Result from asynchronous loading. When loading set to MA_BUSY. When initialized set to MA_SUCCESS. When deleting set to MA_UNAVAILABLE. If an error occurs when loading, set to an error code.  }
+  {_Alignas(4) }  { Whether or not the decoder has reached the end.  }
+  {_Alignas(4) }  { Booleans to indicate whether or not a page is valid. Set to false by the public API, set to true by the job thread. Set to false as the pages are consumed, true when they are filled.  }
+  {_Alignas(4) }  { When 0, no seeking is being performed. When > 0, a seek is being performed and reading should be delayed with MA_BUSY.  }
     ma_resource_manager_data_stream = record
         ds : ma_data_source_base;
-        pResourceManager : pointer; {^ma_resource_manager;}
+        pResourceManager : ^ma_resource_manager;
         flags : ma_uint32;
         decoder : ma_decoder;
         isDecoderInitialized : ma_bool32;
@@ -11223,8 +9413,8 @@ type
 
   { Must be the first item because we need the first item to be the data source callbacks for the buffer or stream.  }
   { The flags that were passed in to ma_resource_manager_data_source_init().  }
-  { For allocating execution orders for jobs.  }
-  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
+  {_Alignas(4) }  { For allocating execution orders for jobs.  }
+  {_Alignas(4) }  { For managing the order of execution for asynchronous jobs relating to this object. Incremented as jobs complete processing.  }
     ma_resource_manager_data_source = record
         backend : record
             case longint of
@@ -11243,10 +9433,9 @@ type
   { The maximum number of jobs that can fit in the queue at a time. Defaults to MA_JOB_TYPE_RESOURCE_MANAGER_QUEUE_CAPACITY. Cannot be zero.  }
   { Can be NULL in which case defaults will be used.  }
 
-    
     ma_resource_manager_config = record
         allocationCallbacks : ma_allocation_callbacks;
-        pLog : pma_log;
+        pLog : ^ma_log;
         decodedFormat : ma_format;
         decodedChannels : ma_uint32;
         decodedSampleRate : ma_uint32;
@@ -11254,20 +9443,22 @@ type
         jobThreadStackSize : size_t;
         jobQueueCapacity : ma_uint32;
         flags : ma_uint32;
-        pVFS : pma_vfs;
-        ppCustomDecodingBackendVTables : ppma_decoding_backend_vtable;
+        pVFS : ^ma_vfs;
+        ppCustomDecodingBackendVTables : PPma_decoding_backend_vtable;
         customDecodingBackendCount : ma_uint32;
         pCustomDecodingBackendUserData : pointer;
       end;
 
-  function ma_resource_manager_config_init:ma_resource_manager_config;cdecl; external;
 
   { The root buffer in the binary tree.  }
+{$ifndef MA_NO_THREADING}
+  { For synchronizing access to the data buffer binary tree.  }
+  { The threads for executing jobs.  }
+{$endif}
   { Multi-consumer, multi-producer job queue for managing jobs for asynchronous decoding and streaming.  }
   { Only used if a custom VFS is not specified.  }
   { Only used if no log was specified in the config.  }
 
-  type
     ma_resource_manager = record
         config : ma_resource_manager_config;
         pRootDataBufferNode : ^ma_resource_manager_data_buffer_node;
@@ -11277,186 +9468,10 @@ type
         defaultVFS : ma_default_vfs;
         log : ma_log;
       end;
-  Pma_resource_manager  = ^ma_resource_manager;
-  Pma_resource_manager_config  = ^ma_resource_manager_config;
-  Pma_resource_manager_data_source_config  = ^ma_resource_manager_data_source_config;
-  Pma_resource_manager_data_buffer  = ^ma_resource_manager_data_buffer;
-  Pma_resource_manager_data_source  = ^ma_resource_manager_data_source;
-  Pma_resource_manager_data_stream  = ^ma_resource_manager_data_stream;
-  Pma_resource_manager_pipeline_notifications  = ^ma_resource_manager_pipeline_notifications;
 
   { Init.  }
 (* Const before type ignored *)
 
-  function ma_resource_manager_init(pConfig:Pma_resource_manager_config; pResourceManager:Pma_resource_manager):ma_result;cdecl; external;
-
-  procedure ma_resource_manager_uninit(pResourceManager:Pma_resource_manager);cdecl; external;
-
-  function ma_resource_manager_get_log(pResourceManager:Pma_resource_manager):pma_log;cdecl; external;
-
-  { Registration.  }
-(* Const before type ignored *)
-  function ma_resource_manager_register_file(pResourceManager:Pma_resource_manager; pFilePath:Pchar; flags:ma_uint32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_register_file_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t; flags:ma_uint32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_register_decoded_data(pResourceManager:Pma_resource_manager; pName:Pchar; pData:pointer; frameCount:ma_uint64; format:ma_format; 
-             channels:ma_uint32; sampleRate:ma_uint32):ma_result;cdecl; external;
-
-  { Does not copy. Increments the reference count if already exists and returns MA_SUCCESS.  }
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_register_decoded_data_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t; pData:pointer; frameCount:ma_uint64; format:ma_format; 
-             channels:ma_uint32; sampleRate:ma_uint32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_register_encoded_data(pResourceManager:Pma_resource_manager; pName:Pchar; pData:pointer; sizeInBytes:size_t):ma_result;cdecl; external;
-
-  { Does not copy. Increments the reference count if already exists and returns MA_SUCCESS.  }
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_register_encoded_data_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t; pData:pointer; sizeInBytes:size_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_unregister_file(pResourceManager:Pma_resource_manager; pFilePath:Pchar):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_unregister_file_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_unregister_data(pResourceManager:Pma_resource_manager; pName:Pchar):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_unregister_data_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t):ma_result;cdecl; external;
-
-  { Data Buffers.  }
-(* Const before type ignored *)
-  function ma_resource_manager_data_buffer_init_ex(pResourceManager:Pma_resource_manager; pConfig:Pma_resource_manager_data_source_config; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_data_buffer_init(pResourceManager:Pma_resource_manager; pFilePath:Pchar; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_data_buffer_init_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_buffer_init_copy(pResourceManager:Pma_resource_manager; pExistingDataBuffer:Pma_resource_manager_data_buffer; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_uninit(pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_read_pcm_frames(pDataBuffer:Pma_resource_manager_data_buffer; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_seek_to_pcm_frame(pDataBuffer:Pma_resource_manager_data_buffer; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_get_data_format(pDataBuffer:Pma_resource_manager_data_buffer; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
-             channelMapCap:size_t):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_get_cursor_in_pcm_frames(pDataBuffer:Pma_resource_manager_data_buffer; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_get_length_in_pcm_frames(pDataBuffer:Pma_resource_manager_data_buffer; pLength:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_buffer_result(pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_buffer_set_looping(pDataBuffer:Pma_resource_manager_data_buffer; isLooping:ma_bool32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_buffer_is_looping(pDataBuffer:Pma_resource_manager_data_buffer):ma_bool32;cdecl; external;
-
-  function ma_resource_manager_data_buffer_get_available_frames(pDataBuffer:Pma_resource_manager_data_buffer; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
-
-  { Data Streams.  }
-(* Const before type ignored *)
-  function ma_resource_manager_data_stream_init_ex(pResourceManager:Pma_resource_manager; pConfig:Pma_resource_manager_data_source_config; pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_data_stream_init(pResourceManager:Pma_resource_manager; pFilePath:Pchar; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_data_stream_init_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_uninit(pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_read_pcm_frames(pDataStream:Pma_resource_manager_data_stream; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_seek_to_pcm_frame(pDataStream:Pma_resource_manager_data_stream; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_get_data_format(pDataStream:Pma_resource_manager_data_stream; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
-             channelMapCap:size_t):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_get_cursor_in_pcm_frames(pDataStream:Pma_resource_manager_data_stream; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_get_length_in_pcm_frames(pDataStream:Pma_resource_manager_data_stream; pLength:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_stream_result(pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_stream_set_looping(pDataStream:Pma_resource_manager_data_stream; isLooping:ma_bool32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_stream_is_looping(pDataStream:Pma_resource_manager_data_stream):ma_bool32;cdecl; external;
-
-  function ma_resource_manager_data_stream_get_available_frames(pDataStream:Pma_resource_manager_data_stream; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
-
-  { Data Sources.  }
-(* Const before type ignored *)
-  function ma_resource_manager_data_source_init_ex(pResourceManager:Pma_resource_manager; pConfig:Pma_resource_manager_data_source_config; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_data_source_init(pResourceManager:Pma_resource_manager; pName:Pchar; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_resource_manager_data_source_init_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_source_init_copy(pResourceManager:Pma_resource_manager; pExistingDataSource:Pma_resource_manager_data_source; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_uninit(pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_read_pcm_frames(pDataSource:Pma_resource_manager_data_source; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_seek_to_pcm_frame(pDataSource:Pma_resource_manager_data_source; frameIndex:ma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_get_data_format(pDataSource:Pma_resource_manager_data_source; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
-             channelMapCap:size_t):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_get_cursor_in_pcm_frames(pDataSource:Pma_resource_manager_data_source; pCursor:Pma_uint64):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_get_length_in_pcm_frames(pDataSource:Pma_resource_manager_data_source; pLength:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_source_result(pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
-
-  function ma_resource_manager_data_source_set_looping(pDataSource:Pma_resource_manager_data_source; isLooping:ma_bool32):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_resource_manager_data_source_is_looping(pDataSource:Pma_resource_manager_data_source):ma_bool32;cdecl; external;
-
-  function ma_resource_manager_data_source_get_available_frames(pDataSource:Pma_resource_manager_data_source; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
-
-  { Job management.  }
-(* Const before type ignored *)
-  function ma_resource_manager_post_job(pResourceManager:Pma_resource_manager; pJob:Pma_job):ma_result;cdecl; external;
-
-  function ma_resource_manager_post_job_quit(pResourceManager:Pma_resource_manager):ma_result;cdecl; external;
-
-  { Helper for posting a quit job.  }
-  function ma_resource_manager_next_job(pResourceManager:Pma_resource_manager; pJob:Pma_job):ma_result;cdecl; external;
-
-  function ma_resource_manager_process_job(pResourceManager:Pma_resource_manager; pJob:Pma_job):ma_result;cdecl; external;
-
-  { DEPRECATED. Use ma_job_process(). Will be removed in version 0.12.  }
-  function ma_resource_manager_process_next_job(pResourceManager:Pma_resource_manager):ma_result;cdecl; external;
 
   { Returns MA_CANCELLED if a MA_JOB_TYPE_QUIT job is found. In non-blocking mode, returns MA_NO_DATA_AVAILABLE if no jobs are available.  }
 {$endif}
@@ -11466,25 +9481,6 @@ type
   Node Graph
   
   *********************************************************************************************************************************************************** }
-{$ifndef MA_NO_NODE_GRAPH}
-  { Must never exceed 254.  }
-{$ifndef MA_MAX_NODE_BUS_COUNT}
-
-  const
-    MA_MAX_NODE_BUS_COUNT = 254;    
-{$endif}
-  { Used internally by miniaudio for memory management. Must never exceed MA_MAX_NODE_BUS_COUNT.  }
-{$ifndef MA_MAX_NODE_LOCAL_BUS_COUNT}
-
-  const
-    MA_MAX_NODE_LOCAL_BUS_COUNT = 2;    
-{$endif}
-  { Use this when the bus count is determined by the node instance rather than the vtable.  }
-
-  const
-    MA_NODE_BUS_COUNT_UNKNOWN = 255;    
-
-  type
 
     ma_node = pointer;
   { Node flags.  }
@@ -11529,16 +9525,13 @@ type
       ideas for later on.
        }
 
-      Pma_node  = ^ma_node;
-      PPsingle = ^Psingle;
-      ma_node_vtable = record
+    ma_node_vtable = record
         onProcess : procedure (pNode:Pma_node; ppFramesIn:PPsingle; pFrameCountIn:Pma_uint32; ppFramesOut:PPsingle; pFrameCountOut:Pma_uint32);cdecl;
         onGetRequiredInputFrameCount : function (pNode:Pma_node; outputFrameCount:ma_uint32; pInputFrameCount:Pma_uint32):ma_result;cdecl;
         inputBusCount : ma_uint8;
         outputBusCount : ma_uint8;
         flags : ma_uint32;
       end;
-      pma_node_vtable = ^ma_node_vtable;
 (* Const before type ignored *)
   { Should never be null. Initialization of the node will fail if so.  }
   { Defaults to ma_node_state_started.  }
@@ -11557,31 +9550,26 @@ type
         pInputChannels : ^ma_uint32;
         pOutputChannels : ^ma_uint32;
       end;
-  Pma_node_config  = ^ma_node_config;
-
-  function ma_node_config_init:ma_node_config;cdecl; external;
 
   {
   A node has multiple output buses. An output bus is attached to an input bus as an item in a linked
   list. Think of the input bus as a linked list, with the output bus being an item in that list.
    }
 
-  type
   { Immutable.  }
   { The node that owns this output bus. The input node. Will be null for dummy head and tail nodes.  }
   { The index of the output bus on pNode that this output bus represents.  }
   { The number of channels in the audio stream for this bus.  }
   { Mutable via multiple threads. Must be used atomically. The weird ordering here is for packing reasons.  }
   { The index of the input bus on the input. Required for detaching. Will only be used within the spinlock so does not need to be atomic.  }
-  { Some state flags for tracking the read state of the output buffer. A combination of MA_NODE_OUTPUT_BUS_FLAG_*.  }
-  { Reference count for some thread-safety when detaching.  }
-  { This is used to prevent iteration of nodes that are in the middle of being detached. Used for thread safety.  }
-  { Unfortunate lock, but significantly simplifies the implementation. Required for thread-safe attaching and detaching.  }
-  { Linear.  }
-  { If null, it's the tail node or detached.  }
-  { If null, it's the head node or detached.  }
-  { The node that this output bus is attached to. Required for detaching.  }
-    pma_node_output_bus = ^ma_node_output_bus;
+  {_Alignas(4) }  { Some state flags for tracking the read state of the output buffer. A combination of MA_NODE_OUTPUT_BUS_FLAG_*.  }
+  {_Alignas(4) }  { Reference count for some thread-safety when detaching.  }
+  {_Alignas(4) }  { This is used to prevent iteration of nodes that are in the middle of being detached. Used for thread safety.  }
+  {_Alignas(4) }  { Unfortunate lock, but significantly simplifies the implementation. Required for thread-safe attaching and detaching.  }
+  {_Alignas(4) }  { Linear.  }
+  {_Alignas(MA_SIZEOF_PTR) }  { If null, it's the tail node or detached.  }
+  {_Alignas(MA_SIZEOF_PTR) }  { If null, it's the head node or detached.  }
+  {_Alignas(MA_SIZEOF_PTR) }  { The node that this output bus is attached to. Required for detaching.  }
     ma_node_output_bus = record
         pNode : ^ma_node;
         outputBusIndex : ma_uint8;
@@ -11592,8 +9580,8 @@ type
         isAttached : ma_bool32;
         lock : ma_spinlock;
         volume : single;
-        pNext : pma_node_output_bus;
-        pPrev : pma_node_output_bus;
+        pNext : ^ma_node_output_bus;
+        pPrev : ^ma_node_output_bus;
         pInputNode : ^ma_node;
       end;
 
@@ -11603,8 +9591,8 @@ type
    }
   { Mutable via multiple threads.  }
   { Dummy head node for simplifying some lock-free thread-safety stuff.  }
-  { This is used to determine whether or not the input bus is finding the next node in the list. Used for thread safety when detaching output buses.  }
-  { Unfortunate lock, but significantly simplifies the implementation. Required for thread-safe attaching and detaching.  }
+  {_Alignas(4) }  { This is used to determine whether or not the input bus is finding the next node in the list. Used for thread safety when detaching output buses.  }
+  {_Alignas(4) }  { Unfortunate lock, but significantly simplifies the implementation. Required for thread-safe attaching and detaching.  }
   { Set once at startup.  }
   { The number of channels in the audio stream for this bus.  }
     ma_node_input_bus = record
@@ -11613,7 +9601,6 @@ type
         lock : ma_spinlock;
         channels : ma_uint8;
       end;
-      pma_node_input_bus = ^ma_node_input_bus;
 
   { These variables are set once at startup.  }
   { The graph this node belongs to.  }
@@ -11622,17 +9609,16 @@ type
   { The capacity of the input data cache in frames, per bus.  }
   { These variables are read and written only from the audio thread.  }
   { These variables are read and written between different threads.  }
-  { When set to stopped, nothing will be read, regardless of the times in stateTimes.  }
-  { Indexed by ma_node_state. Specifies the time based on the global clock that a node should be considered to be in the relevant state.  }
-  { The node's local clock. This is just a running sum of the number of output frames that have been processed. Can be modified by any thread with `ma_node_set_time()`.  }
+  {_Alignas(4) }  { When set to stopped, nothing will be read, regardless of the times in stateTimes.  }
+  {_Alignas(8) }  { Indexed by ma_node_state. Specifies the time based on the global clock that a node should be considered to be in the relevant state.  }
+  {_Alignas(8) }  { The node's local clock. This is just a running sum of the number of output frames that have been processed. Can be modified by any thread with `ma_node_set_time()`.  }
   { Memory management.  }
   { A heap allocation for internal use only. pInputBuses and/or pOutputBuses will point to this if the bus count exceeds MA_MAX_NODE_LOCAL_BUS_COUNT.  }
   { If set to true, the node owns the heap allocation and _pHeap will be freed in ma_node_uninit().  }
-    pma_node_graph = pointer; { fixme }
     ma_node_base = record
-        pNodeGraph : pma_node_graph;
-        vtable : pma_node_vtable;
-        pCachedData : psingle;
+        pNodeGraph : ^ma_node_graph;
+        vtable : ^ma_node_vtable;
+        pCachedData : ^single;
         cachedDataCapInFramesPerBus : ma_uint16;
         cachedFrameCountOut : ma_uint16;
         cachedFrameCountIn : ma_uint16;
@@ -11642,8 +9628,8 @@ type
         localTime : ma_uint64;
         inputBusCount : ma_uint32;
         outputBusCount : ma_uint32;
-        pInputBuses : pma_node_input_bus;
-        pOutputBuses : pma_node_output_bus;
+        pInputBuses : ^ma_node_input_bus;
+        pOutputBuses : ^ma_node_output_bus;
         _inputBuses : array[0..(MA_MAX_NODE_LOCAL_BUS_COUNT)-1] of ma_node_input_bus;
         _outputBuses : array[0..(MA_MAX_NODE_LOCAL_BUS_COUNT)-1] of ma_node_output_bus;
         _pHeap : pointer;
@@ -11652,80 +9638,18 @@ type
 
 (* Const before type ignored *)
 
-  function ma_node_get_heap_size(pNodeGraph:Pma_node_graph; pConfig:Pma_node_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_node_init_preallocated(pNodeGraph:Pma_node_graph; pConfig:Pma_node_config; pHeap:pointer; pNode:Pma_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_node_uninit(pNode:Pma_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_node_graph(pNode:Pma_node):pma_node_graph;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_input_bus_count(pNode:Pma_node):ma_uint32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_output_bus_count(pNode:Pma_node):ma_uint32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_input_channels(pNode:Pma_node; inputBusIndex:ma_uint32):ma_uint32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_output_channels(pNode:Pma_node; outputBusIndex:ma_uint32):ma_uint32;cdecl; external;
-
-  function ma_node_attach_output_bus(pNode:Pma_node; outputBusIndex:ma_uint32; pOtherNode:Pma_node; otherNodeInputBusIndex:ma_uint32):ma_result;cdecl; external;
-
-  function ma_node_detach_output_bus(pNode:Pma_node; outputBusIndex:ma_uint32):ma_result;cdecl; external;
-
-  function ma_node_detach_all_output_buses(pNode:Pma_node):ma_result;cdecl; external;
-
-  function ma_node_set_output_bus_volume(pNode:Pma_node; outputBusIndex:ma_uint32; volume:single):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_output_bus_volume(pNode:Pma_node; outputBusIndex:ma_uint32):single;cdecl; external;
-
-  function ma_node_set_state(pNode:Pma_node; state:ma_node_state):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_state(pNode:Pma_node):ma_node_state;cdecl; external;
-
-  function ma_node_set_state_time(pNode:Pma_node; state:ma_node_state; globalTime:ma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_state_time(pNode:Pma_node; state:ma_node_state):ma_uint64;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_state_by_time(pNode:Pma_node; globalTime:ma_uint64):ma_node_state;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_state_by_time_range(pNode:Pma_node; globalTimeBeg:ma_uint64; globalTimeEnd:ma_uint64):ma_node_state;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_get_time(pNode:Pma_node):ma_uint64;cdecl; external;
-
-  function ma_node_set_time(pNode:Pma_node; localTime:ma_uint64):ma_result;cdecl; external;
-
-  type
     ma_node_graph_config = record
         channels : ma_uint32;
         nodeCacheCapInFrames : ma_uint16;
       end;
-  Pma_node_graph_config  = ^ma_node_graph_config;
 
-  function ma_node_graph_config_init(channels:ma_uint32):ma_node_graph_config;cdecl; external;
 
   { Immutable.  }
   { The node graph itself is a node so it can be connected as an input to different node graph. This has zero inputs and calls ma_node_graph_read_pcm_frames() to generate it's output.  }
   { Special node that all nodes eventually connect to. Data is read from this node in ma_node_graph_read_pcm_frames().  }
   { Read and written by multiple threads.  }
-
-  type
+  {_Alignas(4) }
     ma_node_graph = record
         base : ma_node_base;
         endpoint : ma_node_base;
@@ -11736,372 +9660,196 @@ type
 (* Const before type ignored *)
 (* Const before type ignored *)
 
-  function ma_node_graph_init(pConfig:Pma_node_graph_config; pAllocationCallbacks:Pma_allocation_callbacks; pNodeGraph:Pma_node_graph):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_node_graph_uninit(pNodeGraph:Pma_node_graph; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  function ma_node_graph_get_endpoint(pNodeGraph:Pma_node_graph):pma_node;cdecl; external;
-
-  function ma_node_graph_read_pcm_frames(pNodeGraph:Pma_node_graph; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_graph_get_channels(pNodeGraph:Pma_node_graph):ma_uint32;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_node_graph_get_time(pNodeGraph:Pma_node_graph):ma_uint64;cdecl; external;
-
-  function ma_node_graph_set_time(pNodeGraph:Pma_node_graph; globalTime:ma_uint64):ma_result;cdecl; external;
 
   { Data source node. 0 input buses, 1 output bus. Used for reading from a data source.  }
 
-  type
     ma_data_source_node_config = record
         nodeConfig : ma_node_config;
         pDataSource : ^ma_data_source;
       end;
 
-  function ma_data_source_node_config_init(pDataSource:Pma_data_source):ma_data_source_node_config;cdecl; external;
 
 
-  type
     ma_data_source_node = record
         base : ma_node_base;
         pDataSource : ^ma_data_source;
       end;
-  Pma_data_source_node  = ^ma_data_source_node;
-  Pma_data_source_node_config  = ^ma_data_source_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_data_source_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_data_source_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pDataSourceNode:Pma_data_source_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_data_source_node_uninit(pDataSourceNode:Pma_data_source_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  function ma_data_source_node_set_looping(pDataSourceNode:Pma_data_source_node; isLooping:ma_bool32):ma_result;cdecl; external;
-
-  function ma_data_source_node_is_looping(pDataSourceNode:Pma_data_source_node):ma_bool32;cdecl; external;
 
   { Splitter Node. 1 input, many outputs. Used for splitting/copying a stream so it can be as input into two separate output nodes.  }
 
-  type
     ma_splitter_node_config = record
         nodeConfig : ma_node_config;
         channels : ma_uint32;
         outputBusCount : ma_uint32;
       end;
-  Pma_splitter_node_config  = ^ma_splitter_node_config;
-
-  function ma_splitter_node_config_init(channels:ma_uint32):ma_splitter_node_config;cdecl; external;
 
 
-  type
+
     ma_splitter_node = record
         base : ma_node_base;
       end;
-  Pma_splitter_node  = ^ma_splitter_node;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_splitter_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_splitter_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pSplitterNode:Pma_splitter_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_splitter_node_uninit(pSplitterNode:Pma_splitter_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   Biquad Node
    }
 
-  type
     ma_biquad_node_config = record
         nodeConfig : ma_node_config;
         biquad : ma_biquad_config;
       end;
 
-  function ma_biquad_node_config_init(channels:ma_uint32; b0:single; b1:single; b2:single; a0:single; 
-             a1:single; a2:single):ma_biquad_node_config;cdecl; external;
 
 
-  type
     ma_biquad_node = record
         baseNode : ma_node_base;
         biquad : ma_biquad;
       end;
-  Pma_biquad_node  = ^ma_biquad_node;
-  Pma_biquad_node_config  = ^ma_biquad_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_biquad_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_biquad_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_biquad_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_biquad_node_reinit(pConfig:Pma_biquad_config; pNode:Pma_biquad_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_biquad_node_uninit(pNode:Pma_biquad_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   Low Pass Filter Node
    }
 
-  type
     ma_lpf_node_config = record
         nodeConfig : ma_node_config;
         lpf : ma_lpf_config;
       end;
 
-  function ma_lpf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_lpf_node_config;cdecl; external;
 
 
-  type
     ma_lpf_node = record
         baseNode : ma_node_base;
         lpf : ma_lpf;
       end;
-  Pma_lpf_node  = ^ma_lpf_node;
-  Pma_lpf_node_config  = ^ma_lpf_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_lpf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_lpf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_lpf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_lpf_node_reinit(pConfig:Pma_lpf_config; pNode:Pma_lpf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_lpf_node_uninit(pNode:Pma_lpf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   High Pass Filter Node
    }
 
-  type
     ma_hpf_node_config = record
         nodeConfig : ma_node_config;
         hpf : ma_hpf_config;
       end;
 
-  function ma_hpf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_hpf_node_config;cdecl; external;
 
 
-  type
     ma_hpf_node = record
         baseNode : ma_node_base;
         hpf : ma_hpf;
       end;
-  Pma_hpf_node  = ^ma_hpf_node;
-  Pma_hpf_node_config  = ^ma_hpf_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_hpf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_hpf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_hpf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_hpf_node_reinit(pConfig:Pma_hpf_config; pNode:Pma_hpf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_hpf_node_uninit(pNode:Pma_hpf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   Band Pass Filter Node
    }
 
-  type
     ma_bpf_node_config = record
         nodeConfig : ma_node_config;
         bpf : ma_bpf_config;
       end;
 
-  function ma_bpf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_bpf_node_config;cdecl; external;
 
-
-type
     ma_bpf_node = record
         baseNode : ma_node_base;
         bpf : ma_bpf;
       end;
-  Pma_bpf_node  = ^ma_bpf_node;
-  Pma_bpf_node_config  = ^ma_bpf_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
 
-  function ma_bpf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_bpf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_bpf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_bpf_node_reinit(pConfig:Pma_bpf_config; pNode:Pma_bpf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_bpf_node_uninit(pNode:Pma_bpf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   Notching Filter Node
    }
 
-  type
     ma_notch_node_config = record
         nodeConfig : ma_node_config;
         notch : ma_notch_config;
       end;
 
-  function ma_notch_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; q:double; frequency:double):ma_notch_node_config;cdecl; external;
 
 
-  type
     ma_notch_node = record
         baseNode : ma_node_base;
         notch : ma_notch2;
       end;
-  Pma_notch_node  = ^ma_notch_node;
-  Pma_notch_node_config  = ^ma_notch_node_config;
-  Pma_notch_config  = ^ma_notch_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_notch_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_notch_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_notch_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_notch_node_reinit(pConfig:Pma_notch_config; pNode:Pma_notch_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_notch_node_uninit(pNode:Pma_notch_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   Peaking Filter Node
    }
 
-  type
     ma_peak_node_config = record
         nodeConfig : ma_node_config;
         peak : ma_peak_config;
       end;
 
-  function ma_peak_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; frequency:double):ma_peak_node_config;cdecl; external;
 
 
-  type
     ma_peak_node = record
         baseNode : ma_node_base;
         peak : ma_peak2;
       end;
-  Pma_peak_config  = ^ma_peak_config;
-  Pma_peak_node  = ^ma_peak_node;
-  Pma_peak_node_config  = ^ma_peak_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_peak_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_peak_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_peak_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_peak_node_reinit(pConfig:Pma_peak_config; pNode:Pma_peak_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_peak_node_uninit(pNode:Pma_peak_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   Low Shelf Filter Node
    }
 
-  type
     ma_loshelf_node_config = record
         nodeConfig : ma_node_config;
         loshelf : ma_loshelf_config;
       end;
 
-  function ma_loshelf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; frequency:double):ma_loshelf_node_config;cdecl; external;
 
-
-  type
     ma_loshelf_node = record
         baseNode : ma_node_base;
         loshelf : ma_loshelf2;
       end;
-  Pma_loshelf_node  = ^ma_loshelf_node;
-  Pma_loshelf_node_config  = ^ma_loshelf_node_config;
-  Pma_loshelf_config  = ^ma_loshelf_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
-
-  function ma_loshelf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_loshelf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_loshelf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_loshelf_node_reinit(pConfig:Pma_loshelf_config; pNode:Pma_loshelf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_loshelf_node_uninit(pNode:Pma_loshelf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
 
   {
   High Shelf Filter Node
    }
 
-  type
     ma_hishelf_node_config = record
         nodeConfig : ma_node_config;
         hishelf : ma_hishelf_config;
       end;
 
-  function ma_hishelf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; frequency:double):ma_hishelf_node_config;cdecl; external;
 
-
-  type
     ma_hishelf_node = record
         baseNode : ma_node_base;
         hishelf : ma_hishelf2;
       end;
-  Pma_hishelf_node  = ^ma_hishelf_node;
-  Pma_hishelf_node_config  = ^ma_hishelf_node_config;
-  Pma_hishelf_config  = ^ma_hishelf_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
 
-  function ma_hishelf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_hishelf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_hishelf_node):ma_result;cdecl; external;
 
-(* Const before type ignored *)
-  function ma_hishelf_node_reinit(pConfig:Pma_hishelf_config; pNode:Pma_hishelf_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_hishelf_node_uninit(pNode:Pma_hishelf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  type
     ma_delay_node_config = record
         nodeConfig : ma_node_config;
         delay : ma_delay_config;
       end;
 
-  function ma_delay_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; delayInFrames:ma_uint32; decay:single):ma_delay_node_config;cdecl; external;
 
 
-  type
     ma_delay_node = record
         baseNode : ma_node_base;
         delay : ma_delay;
       end;
-  Pma_delay_node  = ^ma_delay_node;
-  Pma_delay_node_config  = ^ma_delay_node_config;
 (* Const before type ignored *)
 (* Const before type ignored *)
 
-  function ma_delay_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_delay_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pDelayNode:Pma_delay_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_delay_node_uninit(pDelayNode:Pma_delay_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  procedure ma_delay_node_set_wet(pDelayNode:Pma_delay_node; value:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_node_get_wet(pDelayNode:Pma_delay_node):single;cdecl; external;
-
-  procedure ma_delay_node_set_dry(pDelayNode:Pma_delay_node; value:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_node_get_dry(pDelayNode:Pma_delay_node):single;cdecl; external;
-
-  procedure ma_delay_node_set_decay(pDelayNode:Pma_delay_node; value:single);cdecl; external;
-
-(* Const before type ignored *)
-  function ma_delay_node_get_decay(pDelayNode:Pma_delay_node):single;cdecl; external;
-
-{$endif}
   { MA_NO_NODE_GRAPH  }
   { SECTION: miniaudio_engine.h  }
   {***********************************************************************************************************************************************************
@@ -12109,9 +9857,8 @@ type
   Engine
   
   *********************************************************************************************************************************************************** }
-{$if NOT defined(MA_NO_ENGINE) AND NOT defined(MA_NO_NODE_GRAPH)}
+{$if NOT defined(MA_NO_ENGINE) && NOT defined(MA_NO_NODE_GRAPH)}
 
-  type
   { Sound flags.  }
   { Resource manager flags.  }
   { MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM  }
@@ -12129,17 +9876,8 @@ type
       MA_SOUND_FLAG_UNKNOWN_LENGTH := $00000010,MA_SOUND_FLAG_NO_DEFAULT_ATTACHMENT := $00001000,
       MA_SOUND_FLAG_NO_PITCH := $00002000,MA_SOUND_FLAG_NO_SPATIALIZATION := $00004000
       );
-{$ifndef MA_ENGINE_MAX_LISTENERS}
-
-  const
-    MA_ENGINE_MAX_LISTENERS = 4;    
-{$endif}
-
-  { was #define dname def_expr }
-    {function MA_LISTENER_INDEX_CLOSEST : ma_uint8;    }
 
 
-  type
     ma_engine_node_type = (ma_engine_node_type_sound,ma_engine_node_type_group
       );
   { Only used when the type is set to ma_engine_node_type_sound.  }
@@ -12160,7 +9898,6 @@ type
         isSpatializationDisabled : ma_bool8;
         pinnedListenerIndex : ma_uint8;
       end;
-  Pma_engine_config  = ^ma_engine_config;
 
 
   { Base node object for both ma_sound and ma_sound_group.  }
@@ -12170,25 +9907,19 @@ type
   { For pitch shift.  }
   { This will only be used if volumeSmoothTimeInPCMFrames is > 0.  }
   { Defaults to 1.  }
-  { For determining whether or not the resampler needs to be updated to reflect the new pitch. The resampler will be updated on the mixing thread.  }
+  {_Alignas(4) }  { For determining whether or not the resampler needs to be updated to reflect the new pitch. The resampler will be updated on the mixing thread.  }
   { For determining whether or not the resampler needs to be updated to take a new doppler pitch into account.  }
-  { When set to true, pitching will be disabled which will allow the resampler to be bypassed to save some computation.  }
-  { Set to false by default. When set to false, will not have spatialisation applied.  }
-  { The index of the listener this node should always use for spatialization. If set to MA_LISTENER_INDEX_CLOSEST the engine will use the closest listener.  }
+  {_Alignas(4) }  { When set to true, pitching will be disabled which will allow the resampler to be bypassed to save some computation.  }
+  {_Alignas(4) }  { Set to false by default. When set to false, will not have spatialisation applied.  }
+  {_Alignas(4) }  { The index of the listener this node should always use for spatialization. If set to MA_LISTENER_INDEX_CLOSEST the engine will use the closest listener.  }
   { When setting a fade, it's not done immediately in ma_sound_set_fade(). It's deferred to the audio thread which means we need to store the settings here.  }
   { <-- Defaults to (~(ma_uint64)0) which is used to indicate that no fade should be applied.  }
   { <-- The time to start the fade.  }
   { Memory management.  }
 
-
-    ma_atomic_uint64 = record
-      { _Alignas(8) ma_uint64 value; }
-      value: ma_uint64;
-    end;
-    Pma_engine = ^ma_engine;
     ma_engine_node = record
         baseNode : ma_node_base;
-        pEngine : Pma_engine;
+        pEngine : ^ma_engine;
         sampleRate : ma_uint32;
         volumeSmoothTimeInPCMFrames : ma_uint32;
         monoExpansionMode : ma_mono_expansion_mode;
@@ -12213,11 +9944,12 @@ type
         _ownsHeap : ma_bool8;
         _pHeap : pointer;
       end;
-  Pma_engine_node  = ^ma_engine_node;
-  Pma_engine_node_config  = ^ma_engine_node_config;
 (* Const before type ignored *)
 
-    Pma_sound  = ^ma_sound;
+
+  { Callback for when a sound reaches the end.  }
+
+
     ma_sound_end_proc = procedure (pUserData:pointer; pSound:Pma_sound);cdecl;
 (* Const before type ignored *)
   { Set this to load from the resource manager.  }
@@ -12236,7 +9968,7 @@ type
   { Deprecated. Use initNotifications instead. Released when the resource manager has finished decoding the entire sound. Not used with streams.  }
 
     ma_sound_config = record
-        pFilePath : pchar;
+        pFilePath : ^char;
         pFilePathW : ^wchar_t;
         pDataSource : ^ma_data_source;
         pInitialAttachment : ^ma_node;
@@ -12257,6 +9989,17 @@ type
         initNotifications : ma_resource_manager_pipeline_notifications;
         pDoneFence : ^ma_fence;
       end;
+
+
+  { Will be renamed to ma_sound_config_init() in version 0.12.  }
+  { Must be the first member for compatibility with the ma_node API.  }
+  {_Alignas(8) }  { The PCM frame index to seek to in the mixing thread. Set to (~(ma_uint64)0) to not perform any seeking.  }
+  {_Alignas(4) }  {
+      We're declaring a resource manager data source object here to save us a malloc when loading a
+      sound via the resource manager, which I *think* will be the most common scenario.
+       }
+{$ifndef MA_NO_RESOURCE_MANAGER}
+{$endif}
 
     ma_sound = record
         engineNode : ma_engine_node;
@@ -12281,6 +10024,7 @@ type
     ma_sound_group_config = ma_sound_config;
 
     ma_sound_group = ma_sound;
+
 
 
     ma_engine_process_proc = procedure (pUserData:pointer; pFramesOut:Psingle; frameCount:ma_uint64);cdecl;
@@ -12310,12 +10054,12 @@ type
 
     ma_engine_config = record
         pResourceManager : ^ma_resource_manager;
-        pContext : pma_context;
-        pDevice : pma_device;
+        pContext : ^ma_context;
+        pDevice : ^ma_device;
         pPlaybackDeviceID : ^ma_device_id;
         dataCallback : ma_device_data_proc;
         notificationCallback : ma_device_notification_proc;
-        pLog : pma_log;
+        pLog : ^ma_log;
         listenerCount : ma_uint32;
         channels : ma_uint32;
         sampleRate : ma_uint32;
@@ -12332,6 +10076,13 @@ type
         onProcess : ma_engine_process_proc;
         pProcessUserData : pointer;
       end;
+
+
+  { An engine is a node graph. It should be able to be plugged into any ma_node_graph API (with a cast) which means this must be the first member of this struct.  }
+  { For synchronizing access so the inlined sound list.  }
+  { The first inlined sound. Inlined sounds are tracked in a linked list.  }
+  {_Alignas(4) }  { The total number of allocated inlined sound objects. Used for debugging.  }
+  { The number of frames to interpolate the gain of spatialized sounds across.  }
 
     ma_engine = record
         nodeGraph : ma_node_graph;
@@ -12353,52 +10104,6 @@ type
         onProcess : ma_engine_process_proc;
         pProcessUserData : pointer;
       end;
-  Pma_sound_group  = ^ma_sound_group;
-  Pma_sound_group_config  = ^ma_sound_group_config;
-  Pma_sound_config  = ^ma_sound_config;
-
-  function ma_sound_config_init:ma_sound_config;cdecl; external;
-
-  { Deprecated. Will be removed in version 0.12. Use ma_sound_config_2() instead.  }
-  function ma_sound_config_init_2(pEngine:Pma_engine):ma_sound_config;cdecl; external;
-
-  { Will be renamed to ma_sound_config_init() in version 0.12.  }
-  { Must be the first member for compatibility with the ma_node API.  }
-  { The PCM frame index to seek to in the mixing thread. Set to (~(ma_uint64)0) to not perform any seeking.  }
-  {
-      We're declaring a resource manager data source object here to save us a malloc when loading a
-      sound via the resource manager, which I *think* will be the most common scenario.
-       }
-  function ma_sound_group_config_init:ma_sound_group_config;cdecl; external;
-
-  { Deprecated. Will be removed in version 0.12. Use ma_sound_config_2() instead.  }
-  function ma_sound_group_config_init_2(pEngine:Pma_engine):ma_sound_group_config;cdecl; external;
-
-  { Will be renamed to ma_sound_config_init() in version 0.12.  }
-
-  function ma_engine_config_init:ma_engine_config;cdecl; external;
-
-  { For synchronizing access so the inlined sound list.  }
-  { The first inlined sound. Inlined sounds are tracked in a linked list.  }
-  { The total number of allocated inlined sound objects. Used for debugging.  }
-  { The number of frames to interpolate the gain of spatialized sounds across.  }
-
-  function ma_engine_node_config_init(pEngine:Pma_engine; _type:ma_engine_node_type; flags:ma_uint32):ma_engine_node_config;cdecl; external;
-  function ma_engine_node_get_heap_size(pConfig:Pma_engine_node_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  function ma_engine_node_init_preallocated(pConfig:Pma_engine_node_config; pHeap:pointer; pEngineNode:Pma_engine_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function ma_engine_node_init(pConfig:Pma_engine_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pEngineNode:Pma_engine_node):ma_result;cdecl; external;
-
-(* Const before type ignored *)
-  procedure ma_engine_node_uninit(pEngineNode:Pma_engine_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
-
-  const
-    MA_SOUND_SOURCE_CHANNEL_COUNT = $FFFFFFFF;    
-  { Callback for when a sound reaches the end.  }
 
 (* Const before type ignored *)
 
@@ -12408,19 +10113,19 @@ type
 
   function ma_engine_read_pcm_frames(pEngine:Pma_engine; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
 
-  function ma_engine_get_node_graph(pEngine:Pma_engine):pma_node_graph;cdecl; external;
+  function ma_engine_get_node_graph(pEngine:Pma_engine):Pma_node_graph;cdecl; external;
 
 {$if NOT defined(MA_NO_RESOURCE_MANAGER)}
 
-  function ma_engine_get_resource_manager(pEngine:Pma_engine):pma_resource_manager;cdecl; external;
+  function ma_engine_get_resource_manager(pEngine:Pma_engine):Pma_resource_manager;cdecl; external;
 
 {$endif}
 
-  function ma_engine_get_device(pEngine:Pma_engine):pma_device;cdecl; external;
+  function ma_engine_get_device(pEngine:Pma_engine):Pma_device;cdecl; external;
 
-  function ma_engine_get_log(pEngine:Pma_engine):pma_log;cdecl; external;
+  function ma_engine_get_log(pEngine:Pma_engine):Pma_log;cdecl; external;
 
-  function ma_engine_get_endpoint(pEngine:Pma_engine):pma_node;cdecl; external;
+  function ma_engine_get_endpoint(pEngine:Pma_engine):Pma_node;cdecl; external;
 
 (* Const before type ignored *)
   function ma_engine_get_time_in_pcm_frames(pEngine:Pma_engine):ma_uint64;cdecl; external;
@@ -12526,10 +10231,10 @@ type
   procedure ma_sound_uninit(pSound:Pma_sound);cdecl; external;
 
 (* Const before type ignored *)
-  function ma_sound_get_engine(pSound:Pma_sound):pma_engine;cdecl; external;
+  function ma_sound_get_engine(pSound:Pma_sound):Pma_engine;cdecl; external;
 
 (* Const before type ignored *)
-  function ma_sound_get_data_source(pSound:Pma_sound):pma_data_source;cdecl; external;
+  function ma_sound_get_data_source(pSound:Pma_sound):Pma_data_source;cdecl; external;
 
   function ma_sound_start(pSound:Pma_sound):ma_result;cdecl; external;
 
@@ -12706,7 +10411,7 @@ type
   procedure ma_sound_group_uninit(pGroup:Pma_sound_group);cdecl; external;
 
 (* Const before type ignored *)
-  function ma_sound_group_get_engine(pGroup:Pma_sound_group):pma_engine;cdecl; external;
+  function ma_sound_group_get_engine(pGroup:Pma_sound_group):Pma_engine;cdecl; external;
 
   function ma_sound_group_start(pGroup:Pma_sound_group):ma_result;cdecl; external;
 
@@ -12833,19 +10538,2239 @@ type
 (* Const before type ignored *)
   function ma_sound_group_get_time_in_pcm_frames(pGroup:Pma_sound_group):ma_uint64;cdecl; external;
 
+  (* from above *)
+
+  function ma_log_callback_init(onLog:ma_log_callback_proc; pUserData:pointer):ma_log_callback;cdecl; external;
+  function ma_log_init(pAllocationCallbacks:Pma_allocation_callbacks; pLog:Pma_log):ma_result;cdecl; external;
+
+  procedure ma_log_uninit(pLog:Pma_log);cdecl; external;
+
+  function ma_log_register_callback(pLog:Pma_log; callback:ma_log_callback):ma_result;cdecl; external;
+
+  function ma_log_unregister_callback(pLog:Pma_log; callback:ma_log_callback):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_log_post(pLog:Pma_log; level:ma_uint32; pMessage:Pchar):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  //function ma_log_postv(pLog:Pma_log; level:ma_uint32; pFormat:Pchar; args:va_list):ma_result;cdecl; external;
+
+  function ma_biquad_config_init(format:ma_format; channels:ma_uint32; b0:double; b1:double; b2:double; 
+             a0:double; a1:double; a2:double):ma_biquad_config;cdecl; external;
+  function ma_biquad_get_heap_size(pConfig:Pma_biquad_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_biquad_init_preallocated(pConfig:Pma_biquad_config; pHeap:pointer; pBQ:Pma_biquad):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_biquad_init(pConfig:Pma_biquad_config; pAllocationCallbacks:Pma_allocation_callbacks; pBQ:Pma_biquad):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_biquad_uninit(pBQ:Pma_biquad; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_biquad_reinit(pConfig:Pma_biquad_config; pBQ:Pma_biquad):ma_result;cdecl; external;
+
+  function ma_biquad_clear_cache(pBQ:Pma_biquad):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_biquad_process_pcm_frames(pBQ:Pma_biquad; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_biquad_get_latency(pBQ:Pma_biquad):ma_uint32;cdecl; external;
+
+  function ma_lpf1_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double):ma_lpf1_config;cdecl; external;
+
+  function ma_lpf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; q:double):ma_lpf2_config;cdecl; external;
+
+
+  function ma_lpf1_get_heap_size(pConfig:Pma_lpf1_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf1_init_preallocated(pConfig:Pma_lpf1_config; pHeap:pointer; pLPF:Pma_lpf1):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_lpf1_init(pConfig:Pma_lpf1_config; pAllocationCallbacks:Pma_allocation_callbacks; pLPF:Pma_lpf1):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_lpf1_uninit(pLPF:Pma_lpf1; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf1_reinit(pConfig:Pma_lpf1_config; pLPF:Pma_lpf1):ma_result;cdecl; external;
+
+  function ma_lpf1_clear_cache(pLPF:Pma_lpf1):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf1_process_pcm_frames(pLPF:Pma_lpf1; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf1_get_latency(pLPF:Pma_lpf1):ma_uint32;cdecl; external;
+  function ma_lpf2_get_heap_size(pConfig:Pma_lpf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf2_init_preallocated(pConfig:Pma_lpf2_config; pHeap:pointer; pHPF:Pma_lpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_lpf2_init(pConfig:Pma_lpf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pLPF:Pma_lpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_lpf2_uninit(pLPF:Pma_lpf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf2_reinit(pConfig:Pma_lpf2_config; pLPF:Pma_lpf2):ma_result;cdecl; external;
+
+  function ma_lpf2_clear_cache(pLPF:Pma_lpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf2_process_pcm_frames(pLPF:Pma_lpf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf2_get_latency(pLPF:Pma_lpf2):ma_uint32;cdecl; external;
+
+  function ma_lpf_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_lpf_config;cdecl; external;
+
+  function ma_hpf1_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double):ma_hpf1_config;cdecl; external;
+
+  function ma_hpf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; q:double):ma_hpf2_config;cdecl; external;
+
+  function ma_lpf_get_heap_size(pConfig:Pma_lpf_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+  function ma_hpf1_get_heap_size(pConfig:Pma_hpf1_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf1_init_preallocated(pConfig:Pma_hpf1_config; pHeap:pointer; pLPF:Pma_hpf1):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_hpf1_init(pConfig:Pma_hpf1_config; pAllocationCallbacks:Pma_allocation_callbacks; pHPF:Pma_hpf1):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_hpf1_uninit(pHPF:Pma_hpf1; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf1_reinit(pConfig:Pma_hpf1_config; pHPF:Pma_hpf1):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf1_process_pcm_frames(pHPF:Pma_hpf1; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf1_get_latency(pHPF:Pma_hpf1):ma_uint32;cdecl; external;
+
+  { The second order high-pass filter is implemented as a biquad filter.  }
+
+(* Const before type ignored *)
+  function ma_lpf_init_preallocated(pConfig:Pma_lpf_config; pHeap:pointer; pLPF:Pma_lpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_lpf_init(pConfig:Pma_lpf_config; pAllocationCallbacks:Pma_allocation_callbacks; pLPF:Pma_lpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_lpf_uninit(pLPF:Pma_lpf; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf_reinit(pConfig:Pma_lpf_config; pLPF:Pma_lpf):ma_result;cdecl; external;
+
+  function ma_lpf_clear_cache(pLPF:Pma_lpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf_process_pcm_frames(pLPF:Pma_lpf; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf_get_latency(pLPF:Pma_lpf):ma_uint32;cdecl; external;
+
+  function ma_hpf2_get_heap_size(pConfig:Pma_hpf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf2_init_preallocated(pConfig:Pma_hpf2_config; pHeap:pointer; pHPF:Pma_hpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_hpf2_init(pConfig:Pma_hpf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pHPF:Pma_hpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_hpf2_uninit(pHPF:Pma_hpf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf2_reinit(pConfig:Pma_hpf2_config; pHPF:Pma_hpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf2_process_pcm_frames(pHPF:Pma_hpf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf2_get_latency(pHPF:Pma_hpf2):ma_uint32;cdecl; external;
+
+  function ma_hpf_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_hpf_config;cdecl; external;
+
+  function ma_hpf_get_heap_size(pConfig:Pma_hpf_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+  function ma_bpf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; q:double):ma_bpf2_config;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf_init_preallocated(pConfig:Pma_hpf_config; pHeap:pointer; pLPF:Pma_hpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_hpf_init(pConfig:Pma_hpf_config; pAllocationCallbacks:Pma_allocation_callbacks; pHPF:Pma_hpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_hpf_uninit(pHPF:Pma_hpf; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf_reinit(pConfig:Pma_hpf_config; pHPF:Pma_hpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf_process_pcm_frames(pHPF:Pma_hpf; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+  function ma_bpf2_get_heap_size(pConfig:Pma_bpf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf2_init_preallocated(pConfig:Pma_bpf2_config; pHeap:pointer; pBPF:Pma_bpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_bpf2_init(pConfig:Pma_bpf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pBPF:Pma_bpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_bpf2_uninit(pBPF:Pma_bpf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf2_reinit(pConfig:Pma_bpf2_config; pBPF:Pma_bpf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf2_process_pcm_frames(pBPF:Pma_bpf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf2_get_latency(pBPF:Pma_bpf2):ma_uint32;cdecl; external;
+
+  { If set to 0, will be treated as a passthrough (no filtering will be applied).  }
+(* Const before type ignored *)
+  function ma_hpf_get_latency(pHPF:Pma_hpf):ma_uint32;cdecl; external;
+  { If set to 0, will be treated as a passthrough (no filtering will be applied).  }
+  { If set to 0, will be treated as a passthrough (no filtering will be applied).  }
+
+  function ma_bpf_get_heap_size(pConfig:Pma_bpf_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+  function ma_notch2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; q:double; frequency:double):ma_notch2_config;cdecl; external;
+
+  function ma_notch2_get_heap_size(pConfig:Pma_notch2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+  function ma_peak2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; 
+             frequency:double):ma_peak2_config;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_notch2_init_preallocated(pConfig:Pma_notch2_config; pHeap:pointer; pFilter:Pma_notch2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_notch2_init(pConfig:Pma_notch2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_notch2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_notch2_uninit(pFilter:Pma_notch2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_notch2_reinit(pConfig:Pma_notch2_config; pFilter:Pma_notch2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_notch2_process_pcm_frames(pFilter:Pma_notch2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_notch2_get_latency(pFilter:Pma_notch2):ma_uint32;cdecl; external;
+(* Const before type ignored *)
+  function ma_bpf_init_preallocated(pConfig:Pma_bpf_config; pHeap:pointer; pBPF:Pma_bpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_bpf_init(pConfig:Pma_bpf_config; pAllocationCallbacks:Pma_allocation_callbacks; pBPF:Pma_bpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_bpf_uninit(pBPF:Pma_bpf; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf_reinit(pConfig:Pma_bpf_config; pBPF:Pma_bpf):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf_process_pcm_frames(pBPF:Pma_bpf; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf_get_latency(pBPF:Pma_bpf):ma_uint32;cdecl; external;
+
+  function ma_bpf_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_bpf_config;cdecl; external;
+  function ma_peak2_get_heap_size(pConfig:Pma_peak2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_peak2_init_preallocated(pConfig:Pma_peak2_config; pHeap:pointer; pFilter:Pma_peak2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_peak2_init(pConfig:Pma_peak2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_peak2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_peak2_uninit(pFilter:Pma_peak2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_peak2_reinit(pConfig:Pma_peak2_config; pFilter:Pma_peak2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_peak2_process_pcm_frames(pFilter:Pma_peak2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_peak2_get_latency(pFilter:Pma_peak2):ma_uint32;cdecl; external;
+
+
+  function ma_loshelf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; shelfSlope:double; 
+             frequency:double):ma_loshelf2_config;cdecl; external;
+  function ma_loshelf2_get_heap_size(pConfig:Pma_loshelf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_loshelf2_init_preallocated(pConfig:Pma_loshelf2_config; pHeap:pointer; pFilter:Pma_loshelf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_loshelf2_init(pConfig:Pma_loshelf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_loshelf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_loshelf2_uninit(pFilter:Pma_loshelf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_loshelf2_reinit(pConfig:Pma_loshelf2_config; pFilter:Pma_loshelf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_loshelf2_process_pcm_frames(pFilter:Pma_loshelf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_loshelf2_get_latency(pFilter:Pma_loshelf2):ma_uint32;cdecl; external;
+  function ma_hishelf2_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; shelfSlope:double; 
+             frequency:double):ma_hishelf2_config;cdecl; external;
+  function ma_delay_config_init(channels:ma_uint32; sampleRate:ma_uint32; delayInFrames:ma_uint32; decay:single):ma_delay_config;cdecl; external;
+
+  function ma_hishelf2_get_heap_size(pConfig:Pma_hishelf2_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hishelf2_init_preallocated(pConfig:Pma_hishelf2_config; pHeap:pointer; pFilter:Pma_hishelf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_hishelf2_init(pConfig:Pma_hishelf2_config; pAllocationCallbacks:Pma_allocation_callbacks; pFilter:Pma_hishelf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_hishelf2_uninit(pFilter:Pma_hishelf2; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hishelf2_reinit(pConfig:Pma_hishelf2_config; pFilter:Pma_hishelf2):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hishelf2_process_pcm_frames(pFilter:Pma_hishelf2; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hishelf2_get_latency(pFilter:Pma_hishelf2):ma_uint32;cdecl; external;
+  function ma_delay_init(pConfig:Pma_delay_config; pAllocationCallbacks:Pma_allocation_callbacks; pDelay:Pma_delay):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_delay_uninit(pDelay:Pma_delay; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_process_pcm_frames(pDelay:Pma_delay; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint32):ma_result;cdecl; external;
+
+  procedure ma_delay_set_wet(pDelay:Pma_delay; value:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_get_wet(pDelay:Pma_delay):single;cdecl; external;
+
+  procedure ma_delay_set_dry(pDelay:Pma_delay; value:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_get_dry(pDelay:Pma_delay):single;cdecl; external;
+
+  procedure ma_delay_set_decay(pDelay:Pma_delay; value:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_get_decay(pDelay:Pma_delay):single;cdecl; external;
+
+  function ma_gainer_config_init(channels:ma_uint32; smoothTimeInFrames:ma_uint32):ma_gainer_config;cdecl; external;
+
+  function ma_gainer_get_heap_size(pConfig:Pma_gainer_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_gainer_init_preallocated(pConfig:Pma_gainer_config; pHeap:pointer; pGainer:Pma_gainer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_gainer_init(pConfig:Pma_gainer_config; pAllocationCallbacks:Pma_allocation_callbacks; pGainer:Pma_gainer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_gainer_uninit(pGainer:Pma_gainer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_gainer_process_pcm_frames(pGainer:Pma_gainer; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+  function ma_gainer_set_gain(pGainer:Pma_gainer; newGain:single):ma_result;cdecl; external;
+
+  function ma_gainer_set_gains(pGainer:Pma_gainer; pNewGains:Psingle):ma_result;cdecl; external;
+
+  function ma_gainer_set_master_volume(pGainer:Pma_gainer; volume:single):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_gainer_get_master_volume(pGainer:Pma_gainer; pVolume:Psingle):ma_result;cdecl; external;
+  function ma_panner_config_init(format:ma_format; channels:ma_uint32):ma_panner_config;cdecl; external;
+  function ma_panner_init(pConfig:Pma_panner_config; pPanner:Pma_panner):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_panner_process_pcm_frames(pPanner:Pma_panner; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+  procedure ma_panner_set_mode(pPanner:Pma_panner; mode:ma_pan_mode);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_panner_get_mode(pPanner:Pma_panner):ma_pan_mode;cdecl; external;
+
+  procedure ma_panner_set_pan(pPanner:Pma_panner; pan:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_panner_get_pan(pPanner:Pma_panner):single;cdecl; external;
+
+  function ma_fader_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32):ma_fader_config;cdecl; external;
+
+  function ma_fader_init(pConfig:Pma_fader_config; pFader:Pma_fader):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_fader_process_pcm_frames(pFader:Pma_fader; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_fader_get_data_format(pFader:Pma_fader; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32);cdecl; external;
+
+  procedure ma_fader_set_fade(pFader:Pma_fader; volumeBeg:single; volumeEnd:single; lengthInFrames:ma_uint64);cdecl; external;
+
+  procedure ma_fader_set_fade_ex(pFader:Pma_fader; volumeBeg:single; volumeEnd:single; lengthInFrames:ma_uint64; startOffsetInFrames:ma_int64);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_fader_get_current_volume(pFader:Pma_fader):single;cdecl; external;
+
+  function ma_spatializer_listener_config_init(channelsOut:ma_uint32):ma_spatializer_listener_config;cdecl; external;
+  function ma_spatializer_listener_get_heap_size(pConfig:Pma_spatializer_listener_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_init_preallocated(pConfig:Pma_spatializer_listener_config; pHeap:pointer; pListener:Pma_spatializer_listener):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_spatializer_listener_init(pConfig:Pma_spatializer_listener_config; pAllocationCallbacks:Pma_allocation_callbacks; pListener:Pma_spatializer_listener):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_spatializer_listener_uninit(pListener:Pma_spatializer_listener; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_spatializer_listener_get_channel_map(pListener:Pma_spatializer_listener):Pma_channel;cdecl; external;
+
+  procedure ma_spatializer_listener_set_cone(pListener:Pma_spatializer_listener; innerAngleInRadians:single; outerAngleInRadians:single; outerGain:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_spatializer_listener_get_cone(pListener:Pma_spatializer_listener; pInnerAngleInRadians:Psingle; pOuterAngleInRadians:Psingle; pOuterGain:Psingle);cdecl; external;
+
+  procedure ma_spatializer_listener_set_position(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_get_position(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
+
+  procedure ma_spatializer_listener_set_direction(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_get_direction(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
+
+  procedure ma_spatializer_listener_set_velocity(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_get_velocity(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
+
+  procedure ma_spatializer_listener_set_speed_of_sound(pListener:Pma_spatializer_listener; speedOfSound:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_get_speed_of_sound(pListener:Pma_spatializer_listener):single;cdecl; external;
+
+  procedure ma_spatializer_listener_set_world_up(pListener:Pma_spatializer_listener; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_get_world_up(pListener:Pma_spatializer_listener):ma_vec3f;cdecl; external;
+
+  procedure ma_spatializer_listener_set_enabled(pListener:Pma_spatializer_listener; isEnabled:ma_bool32);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_listener_is_enabled(pListener:Pma_spatializer_listener):ma_bool32;cdecl; external;
+  { Stereo panner.  }
+  { Does not blend one side with the other. Technically just a balance. Compatible with other popular audio engines and therefore the default.  }
+  { A true pan. The sound from one side will "move" to the other side and blend with it.  }
+
+  function ma_spatializer_config_init(channelsIn:ma_uint32; channelsOut:ma_uint32):ma_spatializer_config;cdecl; external;
+  { Gainer for smooth volume changes.  }
+
+  {
+  Delay
+   }
+  { Set to true to delay the start of the output; false otherwise.  }
+  { 0..1. Default = 1.  }
+  { 0..1. Default = 1.  }
+  { 0..1. Default = 0 (no feedback). Feedback decay. Use this for echo.  }
+
+  { The second order low-pass filter is implemented as a biquad filter.  }
+  function ma_spatializer_get_heap_size(pConfig:Pma_spatializer_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_init_preallocated(pConfig:Pma_spatializer_config; pHeap:pointer; pSpatializer:Pma_spatializer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_spatializer_init(pConfig:Pma_spatializer_config; pAllocationCallbacks:Pma_allocation_callbacks; pSpatializer:Pma_spatializer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_spatializer_uninit(pSpatializer:Pma_spatializer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_process_pcm_frames(pSpatializer:Pma_spatializer; pListener:Pma_spatializer_listener; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+  function ma_spatializer_set_master_volume(pSpatializer:Pma_spatializer; volume:single):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_master_volume(pSpatializer:Pma_spatializer; pVolume:Psingle):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_input_channels(pSpatializer:Pma_spatializer):ma_uint32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_output_channels(pSpatializer:Pma_spatializer):ma_uint32;cdecl; external;
+
+  procedure ma_spatializer_set_attenuation_model(pSpatializer:Pma_spatializer; attenuationModel:ma_attenuation_model);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_attenuation_model(pSpatializer:Pma_spatializer):ma_attenuation_model;cdecl; external;
+
+  procedure ma_spatializer_set_positioning(pSpatializer:Pma_spatializer; positioning:ma_positioning);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_positioning(pSpatializer:Pma_spatializer):ma_positioning;cdecl; external;
+
+  procedure ma_spatializer_set_rolloff(pSpatializer:Pma_spatializer; rolloff:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_rolloff(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_min_gain(pSpatializer:Pma_spatializer; minGain:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_min_gain(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_max_gain(pSpatializer:Pma_spatializer; maxGain:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_max_gain(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_min_distance(pSpatializer:Pma_spatializer; minDistance:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_min_distance(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_max_distance(pSpatializer:Pma_spatializer; maxDistance:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_max_distance(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_cone(pSpatializer:Pma_spatializer; innerAngleInRadians:single; outerAngleInRadians:single; outerGain:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_spatializer_get_cone(pSpatializer:Pma_spatializer; pInnerAngleInRadians:Psingle; pOuterAngleInRadians:Psingle; pOuterGain:Psingle);cdecl; external;
+
+  procedure ma_spatializer_set_doppler_factor(pSpatializer:Pma_spatializer; dopplerFactor:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_doppler_factor(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_directional_attenuation_factor(pSpatializer:Pma_spatializer; directionalAttenuationFactor:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_directional_attenuation_factor(pSpatializer:Pma_spatializer):single;cdecl; external;
+
+  procedure ma_spatializer_set_position(pSpatializer:Pma_spatializer; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_position(pSpatializer:Pma_spatializer):ma_vec3f;cdecl; external;
+
+  procedure ma_spatializer_set_direction(pSpatializer:Pma_spatializer; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_direction(pSpatializer:Pma_spatializer):ma_vec3f;cdecl; external;
+
+  procedure ma_spatializer_set_velocity(pSpatializer:Pma_spatializer; x:single; y:single; z:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_spatializer_get_velocity(pSpatializer:Pma_spatializer):ma_vec3f;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  procedure ma_spatializer_get_relative_position_and_direction(pSpatializer:Pma_spatializer; pListener:Pma_spatializer_listener; pRelativePos:Pma_vec3f; pRelativeDir:Pma_vec3f);cdecl; external;
+  function ma_linear_resampler_config_init(format:ma_format; channels:ma_uint32; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_linear_resampler_config;cdecl; external;
+  function ma_linear_resampler_get_heap_size(pConfig:Pma_linear_resampler_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_linear_resampler_init_preallocated(pConfig:Pma_linear_resampler_config; pHeap:pointer; pResampler:Pma_linear_resampler):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_linear_resampler_init(pConfig:Pma_linear_resampler_config; pAllocationCallbacks:Pma_allocation_callbacks; pResampler:Pma_linear_resampler):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_linear_resampler_uninit(pResampler:Pma_linear_resampler; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_linear_resampler_process_pcm_frames(pResampler:Pma_linear_resampler; pFramesIn:pointer; pFrameCountIn:Pma_uint64; pFramesOut:pointer; pFrameCountOut:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_linear_resampler_set_rate(pResampler:Pma_linear_resampler; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_result;cdecl; external;
+
+  function ma_linear_resampler_set_rate_ratio(pResampler:Pma_linear_resampler; ratioInOut:single):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_linear_resampler_get_input_latency(pResampler:Pma_linear_resampler):ma_uint64;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_linear_resampler_get_output_latency(pResampler:Pma_linear_resampler):ma_uint64;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_linear_resampler_get_required_input_frame_count(pResampler:Pma_linear_resampler; outputFrameCount:ma_uint64; pInputFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_linear_resampler_get_expected_output_frame_count(pResampler:Pma_linear_resampler; inputFrameCount:ma_uint64; pOutputFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_linear_resampler_reset(pResampler:Pma_linear_resampler):ma_result;cdecl; external;
+
+
+  function ma_resampler_config_init(format:ma_format; channels:ma_uint32; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32; algorithm:ma_resample_algorithm):ma_resampler_config;cdecl; external;
+
+
+  function ma_resampler_get_heap_size(pConfig:Pma_resampler_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resampler_init_preallocated(pConfig:Pma_resampler_config; pHeap:pointer; pResampler:Pma_resampler):ma_result;cdecl; external;
+  function ma_resampler_init(pConfig:Pma_resampler_config; pAllocationCallbacks:Pma_allocation_callbacks; pResampler:Pma_resampler):ma_result;cdecl; external;
+  function ma_resampler_process_pcm_frames(pResampler:Pma_resampler; pFramesIn:pointer; pFrameCountIn:Pma_uint64; pFramesOut:pointer; pFrameCountOut:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Sets the input and output sample rate.
+   }
+  function ma_resampler_set_rate(pResampler:Pma_resampler; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_result;cdecl; external;
+
+  {
+  Sets the input and output sample rate as a ratio.
+  
+  The ration is in/out.
+   }
+  function ma_resampler_set_rate_ratio(pResampler:Pma_resampler; ratio:single):ma_result;cdecl; external;
+
+  {
+  Retrieves the latency introduced by the resampler in input frames.
+   }
+(* Const before type ignored *)
+  function ma_resampler_get_input_latency(pResampler:Pma_resampler):ma_uint64;cdecl; external;
+
+  {
+  Retrieves the latency introduced by the resampler in output frames.
+   }
+(* Const before type ignored *)
+  function ma_resampler_get_output_latency(pResampler:Pma_resampler):ma_uint64;cdecl; external;
+
+  {
+  Calculates the number of whole input frames that would need to be read from the client in order to output the specified
+  number of output frames.
+  
+  The returned value does not include cached input frames. It only returns the number of extra frames that would need to be
+  read from the input buffer in order to output the specified number of output frames.
+   }
+(* Const before type ignored *)
+  function ma_resampler_get_required_input_frame_count(pResampler:Pma_resampler; outputFrameCount:ma_uint64; pInputFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Calculates the number of whole output frames that would be output after fully reading and consuming the specified number of
+  input frames.
+   }
+(* Const before type ignored *)
+  function ma_resampler_get_expected_output_frame_count(pResampler:Pma_resampler; inputFrameCount:ma_uint64; pOutputFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Resets the resampler's timer and clears it's internal cache.
+   }
+  function ma_resampler_reset(pResampler:Pma_resampler):ma_result;cdecl; external;
+
+
+  {
+  Uninitializes a resampler.
+   }
+(* Const before type ignored *)
+  procedure ma_resampler_uninit(pResampler:Pma_resampler; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+
+  function ma_channel_converter_config_init(format:ma_format; channelsIn:ma_uint32; pChannelMapIn:Pma_channel; channelsOut:ma_uint32; pChannelMapOut:Pma_channel; 
+             mixingMode:ma_channel_mix_mode):ma_channel_converter_config;cdecl; external;
+  function ma_channel_converter_get_heap_size(pConfig:Pma_channel_converter_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_channel_converter_init_preallocated(pConfig:Pma_channel_converter_config; pHeap:pointer; pConverter:Pma_channel_converter):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_channel_converter_init(pConfig:Pma_channel_converter_config; pAllocationCallbacks:Pma_allocation_callbacks; pConverter:Pma_channel_converter):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_channel_converter_uninit(pConverter:Pma_channel_converter; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_channel_converter_process_pcm_frames(pConverter:Pma_channel_converter; pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_channel_converter_get_input_channel_map(pConverter:Pma_channel_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_channel_converter_get_output_channel_map(pConverter:Pma_channel_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
+
+
+  function ma_data_converter_config_init_default:ma_data_converter_config;cdecl; external;
+
+  function ma_data_converter_config_init(formatIn:ma_format; formatOut:ma_format; channelsIn:ma_uint32; channelsOut:ma_uint32; sampleRateIn:ma_uint32; 
+             sampleRateOut:ma_uint32):ma_data_converter_config;cdecl; external;
+
+  function ma_data_converter_get_heap_size(pConfig:Pma_data_converter_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_init_preallocated(pConfig:Pma_data_converter_config; pHeap:pointer; pConverter:Pma_data_converter):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_data_converter_init(pConfig:Pma_data_converter_config; pAllocationCallbacks:Pma_allocation_callbacks; pConverter:Pma_data_converter):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_data_converter_uninit(pConverter:Pma_data_converter; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_process_pcm_frames(pConverter:Pma_data_converter; pFramesIn:pointer; pFrameCountIn:Pma_uint64; pFramesOut:pointer; pFrameCountOut:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_data_converter_set_rate(pConverter:Pma_data_converter; sampleRateIn:ma_uint32; sampleRateOut:ma_uint32):ma_result;cdecl; external;
+
+  function ma_data_converter_set_rate_ratio(pConverter:Pma_data_converter; ratioInOut:single):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_get_input_latency(pConverter:Pma_data_converter):ma_uint64;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_get_output_latency(pConverter:Pma_data_converter):ma_uint64;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_get_required_input_frame_count(pConverter:Pma_data_converter; outputFrameCount:ma_uint64; pInputFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_get_expected_output_frame_count(pConverter:Pma_data_converter; inputFrameCount:ma_uint64; pOutputFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_get_input_channel_map(pConverter:Pma_data_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_converter_get_output_channel_map(pConverter:Pma_data_converter; pChannelMap:Pma_channel; channelMapCap:size_t):ma_result;cdecl; external;
+
+  function ma_data_converter_reset(pConverter:Pma_data_converter):ma_result;cdecl; external;
+
+  {***********************************************************************************************************************************************************
+  
+  Format Conversion
+  
+  *********************************************************************************************************************************************************** }
+(* Const before type ignored *)
+  procedure ma_pcm_u8_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_u8_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_u8_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_u8_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s16_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s16_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s16_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s16_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s24_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s24_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s24_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s24_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s32_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s32_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s32_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_s32_to_f32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_f32_to_u8(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_f32_to_s16(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_f32_to_s24(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_f32_to_s32(pOut:pointer; pIn:pointer; count:ma_uint64; ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_pcm_convert(pOut:pointer; formatOut:ma_format; pIn:pointer; formatIn:ma_format; sampleCount:ma_uint64; 
+              ditherMode:ma_dither_mode);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_convert_pcm_frames_format(pOut:pointer; formatOut:ma_format; pIn:pointer; formatIn:ma_format; frameCount:ma_uint64; 
+              channels:ma_uint32; ditherMode:ma_dither_mode);cdecl; external;
+
+  {
+  Deinterleaves an interleaved buffer.
+   }
+(* Const before type ignored *)
+  procedure ma_deinterleave_pcm_frames(format:ma_format; channels:ma_uint32; frameCount:ma_uint64; pInterleavedPCMFrames:pointer; ppDeinterleavedPCMFrames:Ppointer);cdecl; external;
+
+  {
+  Interleaves a group of deinterleaved buffers.
+   }
+(* Const before type ignored *)
+  procedure ma_interleave_pcm_frames(format:ma_format; channels:ma_uint32; frameCount:ma_uint64; ppDeinterleavedPCMFrames:Ppointer; pInterleavedPCMFrames:pointer);cdecl; external;
+
+
+
+  const
+    MA_CHANNEL_INDEX_NULL = 255;    
+  const
+    MA_DATA_SOURCE_SELF_MANAGED_RANGE_AND_LOOP_POINT = $00000001;    
+  {
+  Retrieves the channel position of the specified channel in the given channel map.
+  
+  The pChannelMap parameter can be null, in which case miniaudio's default channel map will be assumed.
+   }
+(* Const before type ignored *)
+
+  function ma_channel_map_get_channel(pChannelMap:Pma_channel; channelCount:ma_uint32; channelIndex:ma_uint32):ma_channel;cdecl; external;
+
+  {
+  Initializes a blank channel map.
+  
+  When a blank channel map is specified anywhere it indicates that the native channel map should be used.
+   }
+  procedure ma_channel_map_init_blank(pChannelMap:Pma_channel; channels:ma_uint32);cdecl; external;
+
+  {
+  Helper for retrieving a standard channel map.
+  
+  The output channel map buffer must have a capacity of at least `channelMapCap`.
+   }
+  procedure ma_channel_map_init_standard(standardChannelMap:ma_standard_channel_map; pChannelMap:Pma_channel; channelMapCap:size_t; channels:ma_uint32);cdecl; external;
+
+  {
+  Copies a channel map.
+  
+  Both input and output channel map buffers must have a capacity of at at least `channels`.
+   }
+(* Const before type ignored *)
+  procedure ma_channel_map_copy(pOut:Pma_channel; pIn:Pma_channel; channels:ma_uint32);cdecl; external;
+
+  {
+  Copies a channel map if one is specified, otherwise copies the default channel map.
+  
+  The output buffer must have a capacity of at least `channels`. If not NULL, the input channel map must also have a capacity of at least `channels`.
+   }
+(* Const before type ignored *)
+  procedure ma_channel_map_copy_or_default(pOut:Pma_channel; channelMapCapOut:size_t; pIn:Pma_channel; channels:ma_uint32);cdecl; external;
+
+  {
+  Determines whether or not a channel map is valid.
+  
+  A blank channel map is valid (all channels set to MA_CHANNEL_NONE). The way a blank channel map is handled is context specific, but
+  is usually treated as a passthrough.
+  
+  Invalid channel maps:
+    - A channel map with no channels
+    - A channel map with more than one channel and a mono channel
+  
+  The channel map buffer must have a capacity of at least `channels`.
+   }
+(* Const before type ignored *)
+  function ma_channel_map_is_valid(pChannelMap:Pma_channel; channels:ma_uint32):ma_bool32;cdecl; external;
+
+  {
+  Helper for comparing two channel maps for equality.
+  
+  This assumes the channel count is the same between the two.
+  
+  Both channels map buffers must have a capacity of at least `channels`.
+   }
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_channel_map_is_equal(pChannelMapA:Pma_channel; pChannelMapB:Pma_channel; channels:ma_uint32):ma_bool32;cdecl; external;
+
+  {
+  Helper for determining if a channel map is blank (all channels set to MA_CHANNEL_NONE).
+  
+  The channel map buffer must have a capacity of at least `channels`.
+   }
+(* Const before type ignored *)
+  function ma_channel_map_is_blank(pChannelMap:Pma_channel; channels:ma_uint32):ma_bool32;cdecl; external;
+
+  {
+  Helper for determining whether or not a channel is present in the given channel map.
+  
+  The channel map buffer must have a capacity of at least `channels`.
+   }
+(* Const before type ignored *)
+  function ma_channel_map_contains_channel_position(channels:ma_uint32; pChannelMap:Pma_channel; channelPosition:ma_channel):ma_bool32;cdecl; external;
+
+  {
+  Find a channel position in the given channel map. Returns MA_TRUE if the channel is found; MA_FALSE otherwise. The
+  index of the channel is output to `pChannelIndex`.
+  
+  The channel map buffer must have a capacity of at least `channels`.
+   }
+(* Const before type ignored *)
+  function ma_channel_map_find_channel_position(channels:ma_uint32; pChannelMap:Pma_channel; channelPosition:ma_channel; pChannelIndex:Pma_uint32):ma_bool32;cdecl; external;
+
+  {
+  Generates a string representing the given channel map.
+  
+  This is for printing and debugging purposes, not serialization/deserialization.
+  
+  Returns the length of the string, not including the null terminator.
+   }
+(* Const before type ignored *)
+  function ma_channel_map_to_string(pChannelMap:Pma_channel; channels:ma_uint32; pBufferOut:Pchar; bufferCap:size_t):size_t;cdecl; external;
+
+  {
+  Retrieves a human readable version of a channel position.
+   }
+(* Const before type ignored *)
+  function ma_channel_position_to_string(channel:ma_channel):Pchar;cdecl; external;
+
+  {***********************************************************************************************************************************************************
+  
+  Conversion Helpers
+  
+  *********************************************************************************************************************************************************** }
+  {
+  High-level helper for doing a full format conversion in one go. Returns the number of output frames. Call this with pOut set to NULL to
+  determine the required size of the output buffer. frameCountOut should be set to the capacity of pOut. If pOut is NULL, frameCountOut is
+  ignored.
+  
+  A return value of 0 indicates an error.
+  
+  This function is useful for one-off bulk conversions, but if you're streaming data you should use the ma_data_converter APIs instead.
+   }
+(* Const before type ignored *)
+  function ma_convert_frames(pOut:pointer; frameCountOut:ma_uint64; formatOut:ma_format; channelsOut:ma_uint32; sampleRateOut:ma_uint32; 
+             pIn:pointer; frameCountIn:ma_uint64; formatIn:ma_format; channelsIn:ma_uint32; sampleRateIn:ma_uint32):ma_uint64;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_convert_frames_ex(pOut:pointer; frameCountOut:ma_uint64; pIn:pointer; frameCountIn:ma_uint64; pConfig:Pma_data_converter_config):ma_uint64;cdecl; external;
+
+  {***********************************************************************************************************************************************************
+  
+  Data Source
+  
+  *********************************************************************************************************************************************************** }
+
+
+  function ma_data_source_config_init:ma_data_source_config;cdecl; external;
+  function ma_data_source_init(pConfig:Pma_data_source_config; pDataSource:Pma_data_source):ma_result;cdecl; external;
+
+  procedure ma_data_source_uninit(pDataSource:Pma_data_source);cdecl; external;
+
+  function ma_data_source_read_pcm_frames(pDataSource:Pma_data_source; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  { Must support pFramesOut = NULL in which case a forward seek should be performed.  }
+  function ma_data_source_seek_pcm_frames(pDataSource:Pma_data_source; frameCount:ma_uint64; pFramesSeeked:Pma_uint64):ma_result;cdecl; external;
+
+  { Can only seek forward. Equivalent to ma_data_source_read_pcm_frames(pDataSource, NULL, frameCount, &framesRead);  }
+  function ma_data_source_seek_to_pcm_frame(pDataSource:Pma_data_source; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_data_source_get_data_format(pDataSource:Pma_data_source; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
+             channelMapCap:size_t):ma_result;cdecl; external;
+
+  function ma_data_source_get_cursor_in_pcm_frames(pDataSource:Pma_data_source; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_data_source_get_length_in_pcm_frames(pDataSource:Pma_data_source; pLength:Pma_uint64):ma_result;cdecl; external;
+
+  { Returns MA_NOT_IMPLEMENTED if the length is unknown or cannot be determined. Decoders can return this.  }
+  function ma_data_source_get_cursor_in_seconds(pDataSource:Pma_data_source; pCursor:Psingle):ma_result;cdecl; external;
+
+  function ma_data_source_get_length_in_seconds(pDataSource:Pma_data_source; pLength:Psingle):ma_result;cdecl; external;
+
+  function ma_data_source_set_looping(pDataSource:Pma_data_source; isLooping:ma_bool32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_source_is_looping(pDataSource:Pma_data_source):ma_bool32;cdecl; external;
+
+  function ma_data_source_set_range_in_pcm_frames(pDataSource:Pma_data_source; rangeBegInFrames:ma_uint64; rangeEndInFrames:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_data_source_get_range_in_pcm_frames(pDataSource:Pma_data_source; pRangeBegInFrames:Pma_uint64; pRangeEndInFrames:Pma_uint64);cdecl; external;
+
+  function ma_data_source_set_loop_point_in_pcm_frames(pDataSource:Pma_data_source; loopBegInFrames:ma_uint64; loopEndInFrames:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_data_source_get_loop_point_in_pcm_frames(pDataSource:Pma_data_source; pLoopBegInFrames:Pma_uint64; pLoopEndInFrames:Pma_uint64);cdecl; external;
+
+  function ma_data_source_set_current(pDataSource:Pma_data_source; pCurrentDataSource:Pma_data_source):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_source_get_current(pDataSource:Pma_data_source):Pma_data_source;cdecl; external;
+
+  function ma_data_source_set_next(pDataSource:Pma_data_source; pNextDataSource:Pma_data_source):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_source_get_next(pDataSource:Pma_data_source):Pma_data_source;cdecl; external;
+
+  function ma_data_source_set_next_callback(pDataSource:Pma_data_source; onGetNext:ma_data_source_get_next_proc):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_data_source_get_next_callback(pDataSource:Pma_data_source):ma_data_source_get_next_proc;cdecl; external;
+
+(* Const before type ignored *)
+
+
+
+  function ma_audio_buffer_ref_init(format:ma_format; channels:ma_uint32; pData:pointer; sizeInFrames:ma_uint64; pAudioBufferRef:Pma_audio_buffer_ref):ma_result;cdecl; external;
+
+  procedure ma_audio_buffer_ref_uninit(pAudioBufferRef:Pma_audio_buffer_ref);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_ref_set_data(pAudioBufferRef:Pma_audio_buffer_ref; pData:pointer; sizeInFrames:ma_uint64):ma_result;cdecl; external;
+
+  function ma_audio_buffer_ref_read_pcm_frames(pAudioBufferRef:Pma_audio_buffer_ref; pFramesOut:pointer; frameCount:ma_uint64; loop:ma_bool32):ma_uint64;cdecl; external;
+
+  function ma_audio_buffer_ref_seek_to_pcm_frame(pAudioBufferRef:Pma_audio_buffer_ref; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_audio_buffer_ref_map(pAudioBufferRef:Pma_audio_buffer_ref; ppFramesOut:Ppointer; pFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_audio_buffer_ref_unmap(pAudioBufferRef:Pma_audio_buffer_ref; frameCount:ma_uint64):ma_result;cdecl; external;
+
+  { Returns MA_AT_END if the end has been reached. This should be considered successful.  }
+(* Const before type ignored *)
+  function ma_audio_buffer_ref_at_end(pAudioBufferRef:Pma_audio_buffer_ref):ma_bool32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_ref_get_cursor_in_pcm_frames(pAudioBufferRef:Pma_audio_buffer_ref; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_ref_get_length_in_pcm_frames(pAudioBufferRef:Pma_audio_buffer_ref; pLength:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_ref_get_available_frames(pAudioBufferRef:Pma_audio_buffer_ref; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
+
+
+  function ma_audio_buffer_config_init(format:ma_format; channels:ma_uint32; sizeInFrames:ma_uint64; pData:pointer; pAllocationCallbacks:Pma_allocation_callbacks):ma_audio_buffer_config;cdecl; external;
+
+  function ma_audio_buffer_init(pConfig:Pma_audio_buffer_config; pAudioBuffer:Pma_audio_buffer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_init_copy(pConfig:Pma_audio_buffer_config; pAudioBuffer:Pma_audio_buffer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_alloc_and_init(pConfig:Pma_audio_buffer_config; ppAudioBuffer:PPma_audio_buffer):ma_result;cdecl; external;
+
+  { Always copies the data. Doesn't make sense to use this otherwise. Use ma_audio_buffer_uninit_and_free() to uninit.  }
+  procedure ma_audio_buffer_uninit(pAudioBuffer:Pma_audio_buffer);cdecl; external;
+
+  procedure ma_audio_buffer_uninit_and_free(pAudioBuffer:Pma_audio_buffer);cdecl; external;
+
+  function ma_audio_buffer_read_pcm_frames(pAudioBuffer:Pma_audio_buffer; pFramesOut:pointer; frameCount:ma_uint64; loop:ma_bool32):ma_uint64;cdecl; external;
+
+  function ma_audio_buffer_seek_to_pcm_frame(pAudioBuffer:Pma_audio_buffer; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_audio_buffer_map(pAudioBuffer:Pma_audio_buffer; ppFramesOut:Ppointer; pFrameCount:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_audio_buffer_unmap(pAudioBuffer:Pma_audio_buffer; frameCount:ma_uint64):ma_result;cdecl; external;
+
+  { Returns MA_AT_END if the end has been reached. This should be considered successful.  }
+(* Const before type ignored *)
+  function ma_audio_buffer_at_end(pAudioBuffer:Pma_audio_buffer):ma_bool32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_get_cursor_in_pcm_frames(pAudioBuffer:Pma_audio_buffer; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_get_length_in_pcm_frames(pAudioBuffer:Pma_audio_buffer; pLength:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_audio_buffer_get_available_frames(pAudioBuffer:Pma_audio_buffer; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_paged_audio_buffer_data_init(format:ma_format; channels:ma_uint32; pData:Pma_paged_audio_buffer_data):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_paged_audio_buffer_data_uninit(pData:Pma_paged_audio_buffer_data; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_paged_audio_buffer_data_get_head(pData:Pma_paged_audio_buffer_data):Pma_paged_audio_buffer_page;cdecl; external;
+
+  function ma_paged_audio_buffer_data_get_tail(pData:Pma_paged_audio_buffer_data):Pma_paged_audio_buffer_page;cdecl; external;
+
+  function ma_paged_audio_buffer_data_get_length_in_pcm_frames(pData:Pma_paged_audio_buffer_data; pLength:Pma_uint64):ma_result;cdecl; external;
+  function ma_paged_audio_buffer_data_allocate_page(pData:Pma_paged_audio_buffer_data; pageSizeInFrames:ma_uint64; pInitialData:pointer; pAllocationCallbacks:Pma_allocation_callbacks; ppPage:PPma_paged_audio_buffer_page):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_paged_audio_buffer_data_free_page(pData:Pma_paged_audio_buffer_data; pPage:Pma_paged_audio_buffer_page; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
+
+  function ma_paged_audio_buffer_data_append_page(pData:Pma_paged_audio_buffer_data; pPage:Pma_paged_audio_buffer_page):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_paged_audio_buffer_data_allocate_and_append_page(pData:Pma_paged_audio_buffer_data; pageSizeInFrames:ma_uint32; pInitialData:pointer; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
+
+
+  function ma_paged_audio_buffer_init(pConfig:Pma_paged_audio_buffer_config; pPagedAudioBuffer:Pma_paged_audio_buffer):ma_result;cdecl; external;
+
+  procedure ma_paged_audio_buffer_uninit(pPagedAudioBuffer:Pma_paged_audio_buffer);cdecl; external;
+
+  function ma_paged_audio_buffer_read_pcm_frames(pPagedAudioBuffer:Pma_paged_audio_buffer; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  { Returns MA_AT_END if no more pages available.  }
+  function ma_paged_audio_buffer_seek_to_pcm_frame(pPagedAudioBuffer:Pma_paged_audio_buffer; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_paged_audio_buffer_get_cursor_in_pcm_frames(pPagedAudioBuffer:Pma_paged_audio_buffer; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_paged_audio_buffer_get_length_in_pcm_frames(pPagedAudioBuffer:Pma_paged_audio_buffer; pLength:Pma_uint64):ma_result;cdecl; external;
+
+
+  function ma_rb_init_ex(subbufferSizeInBytes:size_t; subbufferCount:size_t; subbufferStrideInBytes:size_t; pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; 
+             pRB:Pma_rb):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_rb_init(bufferSizeInBytes:size_t; pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; pRB:Pma_rb):ma_result;cdecl; external;
+
+  procedure ma_rb_uninit(pRB:Pma_rb);cdecl; external;
+
+  procedure ma_rb_reset(pRB:Pma_rb);cdecl; external;
+
+  function ma_rb_acquire_read(pRB:Pma_rb; pSizeInBytes:Psize_t; ppBufferOut:Ppointer):ma_result;cdecl; external;
+
+  function ma_rb_commit_read(pRB:Pma_rb; sizeInBytes:size_t):ma_result;cdecl; external;
+
+  function ma_rb_acquire_write(pRB:Pma_rb; pSizeInBytes:Psize_t; ppBufferOut:Ppointer):ma_result;cdecl; external;
+
+  function ma_rb_commit_write(pRB:Pma_rb; sizeInBytes:size_t):ma_result;cdecl; external;
+
+  function ma_rb_seek_read(pRB:Pma_rb; offsetInBytes:size_t):ma_result;cdecl; external;
+
+  function ma_rb_seek_write(pRB:Pma_rb; offsetInBytes:size_t):ma_result;cdecl; external;
+
+  function ma_rb_pointer_distance(pRB:Pma_rb):ma_int32;cdecl; external;
+
+  { Returns the distance between the write pointer and the read pointer. Should never be negative for a correct program. Will return the number of bytes that can be read before the read pointer hits the write pointer.  }
+  function ma_rb_available_read(pRB:Pma_rb):ma_uint32;cdecl; external;
+
+  function ma_rb_available_write(pRB:Pma_rb):ma_uint32;cdecl; external;
+
+  function ma_rb_get_subbuffer_size(pRB:Pma_rb):size_t;cdecl; external;
+
+  function ma_rb_get_subbuffer_stride(pRB:Pma_rb):size_t;cdecl; external;
+
+  function ma_rb_get_subbuffer_offset(pRB:Pma_rb; subbufferIndex:size_t):size_t;cdecl; external;
+
+  function ma_rb_get_subbuffer_ptr(pRB:Pma_rb; subbufferIndex:size_t; pBuffer:pointer):pointer;cdecl; external;
+  function ma_pcm_rb_init_ex(format:ma_format; channels:ma_uint32; subbufferSizeInFrames:ma_uint32; subbufferCount:ma_uint32; subbufferStrideInFrames:ma_uint32; 
+             pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; pRB:Pma_pcm_rb):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_pcm_rb_init(format:ma_format; channels:ma_uint32; bufferSizeInFrames:ma_uint32; pOptionalPreallocatedBuffer:pointer; pAllocationCallbacks:Pma_allocation_callbacks; 
+             pRB:Pma_pcm_rb):ma_result;cdecl; external;
+
+  procedure ma_pcm_rb_uninit(pRB:Pma_pcm_rb);cdecl; external;
+
+  procedure ma_pcm_rb_reset(pRB:Pma_pcm_rb);cdecl; external;
+
+  function ma_pcm_rb_acquire_read(pRB:Pma_pcm_rb; pSizeInFrames:Pma_uint32; ppBufferOut:Ppointer):ma_result;cdecl; external;
+
+  function ma_pcm_rb_commit_read(pRB:Pma_pcm_rb; sizeInFrames:ma_uint32):ma_result;cdecl; external;
+
+  function ma_pcm_rb_acquire_write(pRB:Pma_pcm_rb; pSizeInFrames:Pma_uint32; ppBufferOut:Ppointer):ma_result;cdecl; external;
+
+  function ma_pcm_rb_commit_write(pRB:Pma_pcm_rb; sizeInFrames:ma_uint32):ma_result;cdecl; external;
+
+  function ma_pcm_rb_seek_read(pRB:Pma_pcm_rb; offsetInFrames:ma_uint32):ma_result;cdecl; external;
+
+  function ma_pcm_rb_seek_write(pRB:Pma_pcm_rb; offsetInFrames:ma_uint32):ma_result;cdecl; external;
+
+  function ma_pcm_rb_pointer_distance(pRB:Pma_pcm_rb):ma_int32;cdecl; external;
+
+  { Return value is in frames.  }
+  function ma_pcm_rb_available_read(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
+
+  function ma_pcm_rb_available_write(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
+
+  function ma_pcm_rb_get_subbuffer_size(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
+
+  function ma_pcm_rb_get_subbuffer_stride(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
+
+  function ma_pcm_rb_get_subbuffer_offset(pRB:Pma_pcm_rb; subbufferIndex:ma_uint32):ma_uint32;cdecl; external;
+
+  function ma_pcm_rb_get_subbuffer_ptr(pRB:Pma_pcm_rb; subbufferIndex:ma_uint32; pBuffer:pointer):pointer;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_pcm_rb_get_format(pRB:Pma_pcm_rb):ma_format;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_pcm_rb_get_channels(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_pcm_rb_get_sample_rate(pRB:Pma_pcm_rb):ma_uint32;cdecl; external;
+
+  procedure ma_pcm_rb_set_sample_rate(pRB:Pma_pcm_rb; sampleRate:ma_uint32);cdecl; external;
+  function ma_duplex_rb_init(captureFormat:ma_format; captureChannels:ma_uint32; sampleRate:ma_uint32; captureInternalSampleRate:ma_uint32; captureInternalPeriodSizeInFrames:ma_uint32; 
+             pAllocationCallbacks:Pma_allocation_callbacks; pRB:Pma_duplex_rb):ma_result;cdecl; external;
+
+  function ma_duplex_rb_uninit(pRB:Pma_duplex_rb):ma_result;cdecl; external;
+
+  {***********************************************************************************************************************************************************
+  
+  Miscellaneous Helpers
+  
+  *********************************************************************************************************************************************************** }
+  {
+  Retrieves a human readable description of the given result code.
+   }
+(* Const before type ignored *)
+  function ma_result_description(result:ma_result):Pchar;cdecl; external;
+
+  {
+  malloc()
+   }
+(* Const before type ignored *)
+  function ma_malloc(sz:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
+
+  {
+  calloc()
+   }
+(* Const before type ignored *)
+  function ma_calloc(sz:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
+
+  {
+  realloc()
+   }
+(* Const before type ignored *)
+  function ma_realloc(p:pointer; sz:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
+
+  {
+  free()
+   }
+(* Const before type ignored *)
+  procedure ma_free(p:pointer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  {
+  Performs an aligned malloc, with the assumption that the alignment is a power of 2.
+   }
+(* Const before type ignored *)
+  function ma_aligned_malloc(sz:size_t; alignment:size_t; pAllocationCallbacks:Pma_allocation_callbacks):pointer;cdecl; external;
+
+  {
+  Free's an aligned malloc'd buffer.
+   }
+(* Const before type ignored *)
+  procedure ma_aligned_free(p:pointer; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  {
+  Retrieves a friendly name for a format.
+   }
+(* Const before type ignored *)
+  function ma_get_format_name(format:ma_format):Pchar;cdecl; external;
+
+  {
+  Blends two frames in floating point format.
+   }
+  procedure ma_blend_f32(pOut:Psingle; pInA:Psingle; pInB:Psingle; factor:single; channels:ma_uint32);cdecl; external;
+
+  {
+  Retrieves the size of a sample in bytes for the given format.
+  
+  This API is efficient and is implemented using a lookup table.
+  
+  Thread Safety: SAFE
+    This API is pure.
+   }
+  function ma_get_bytes_per_sample(format:ma_format):ma_uint32;cdecl; external;
+
+  {static MA_INLINE ma_uint32 ma_get_bytes_per_frame(ma_format format, ma_uint32 channels)  return ma_get_bytes_per_sample(format) * channels;  }
+  {
+  Converts a log level to a string.
+   }
+(* Const before type ignored *)
+  function ma_log_level_to_string(logLevel:ma_uint32):Pchar;cdecl; external;
+
+  {***********************************************************************************************************************************************************
+  
+  Synchronization
+  
+  *********************************************************************************************************************************************************** }
+  {
+  Locks a spinlock.
+   }
+  {volatile }  function ma_spinlock_lock(pSpinlock:Pma_spinlock):ma_result;cdecl; external;
+
+  {
+  Locks a spinlock, but does not yield() when looping.
+   }
+  {volatile }  function ma_spinlock_lock_noyield(pSpinlock:Pma_spinlock):ma_result;cdecl; external;
+
+  {
+  Unlocks a spinlock.
+   }
+  {volatile }  function ma_spinlock_unlock(pSpinlock:Pma_spinlock):ma_result;cdecl; external;
+
+{$ifndef MA_NO_THREADING}
+  {
+  Creates a mutex.
+  
+  A mutex must be created from a valid context. A mutex is initially unlocked.
+   }
+
+  function ma_mutex_init(pMutex:Pma_mutex):ma_result;cdecl; external;
+
+  {
+  Deletes a mutex.
+   }
+  procedure ma_mutex_uninit(pMutex:Pma_mutex);cdecl; external;
+
+  {
+  Locks a mutex with an infinite timeout.
+   }
+  procedure ma_mutex_lock(pMutex:Pma_mutex);cdecl; external;
+
+  {
+  Unlocks a mutex.
+   }
+  procedure ma_mutex_unlock(pMutex:Pma_mutex);cdecl; external;
+
+  {
+  Initializes an auto-reset event.
+   }
+  function ma_event_init(pEvent:Pma_event):ma_result;cdecl; external;
+
+  {
+  Uninitializes an auto-reset event.
+   }
+  procedure ma_event_uninit(pEvent:Pma_event);cdecl; external;
+
+  {
+  Waits for the specified auto-reset event to become signalled.
+   }
+  function ma_event_wait(pEvent:Pma_event):ma_result;cdecl; external;
+
+  {
+  Signals the specified auto-reset event.
+   }
+  function ma_event_signal(pEvent:Pma_event):ma_result;cdecl; external;
+
+{$endif}
+  { MA_NO_THREADING  }
+  {
+  Fence
+  =====
+  This locks while the counter is larger than 0. Counter can be incremented and decremented by any
+  thread, but care needs to be taken when waiting. It is possible for one thread to acquire the
+  fence just as another thread returns from ma_fence_wait().
+  
+  The idea behind a fence is to allow you to wait for a group of operations to complete. When an
+  operation starts, the counter is incremented which locks the fence. When the operation completes,
+  the fence will be released which decrements the counter. ma_fence_wait() will block until the
+  counter hits zero.
+  
+  If threading is disabled, ma_fence_wait() will spin on the counter.
+   }
+
+
+  function ma_fence_init(pFence:Pma_fence):ma_result;cdecl; external;
+
+  procedure ma_fence_uninit(pFence:Pma_fence);cdecl; external;
+
+  function ma_fence_acquire(pFence:Pma_fence):ma_result;cdecl; external;
+
+  { Increment counter.  }
+  function ma_fence_release(pFence:Pma_fence):ma_result;cdecl; external;
+
+  { Decrement counter.  }
+  function ma_fence_wait(pFence:Pma_fence):ma_result;cdecl; external;
+
+  { Wait for counter to reach 0.  }
+  {
+  Notification callback for asynchronous operations.
+   }
+
+  function ma_async_notification_signal(pNotification:Pma_async_notification):ma_result;cdecl; external;
+  function ma_async_notification_poll_init(pNotificationPoll:Pma_async_notification_poll):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_async_notification_poll_is_signalled(pNotificationPoll:Pma_async_notification_poll):ma_bool32;cdecl; external;
+  function ma_async_notification_event_init(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
+
+  function ma_async_notification_event_uninit(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
+
+  function ma_async_notification_event_wait(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
+
+  function ma_async_notification_event_signal(pNotificationEvent:Pma_async_notification_event):ma_result;cdecl; external;
+
+  function ma_slot_allocator_config_init(capacity:ma_uint32):ma_slot_allocator_config;cdecl; external;
+  function ma_slot_allocator_get_heap_size(pConfig:Pma_slot_allocator_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_slot_allocator_init_preallocated(pConfig:Pma_slot_allocator_config; pHeap:pointer; pAllocator:Pma_slot_allocator):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_slot_allocator_init(pConfig:Pma_slot_allocator_config; pAllocationCallbacks:Pma_allocation_callbacks; pAllocator:Pma_slot_allocator):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_slot_allocator_uninit(pAllocator:Pma_slot_allocator; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_slot_allocator_alloc(pAllocator:Pma_slot_allocator; pSlot:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_slot_allocator_free(pAllocator:Pma_slot_allocator; slot:ma_uint64):ma_result;cdecl; external;
+
+  function ma_job_init(code:ma_uint16):ma_job;cdecl; external;
+
+  function ma_job_process(pJob:Pma_job):ma_result;cdecl; external;
+  function ma_job_queue_config_init(flags:ma_uint32; capacity:ma_uint32):ma_job_queue_config;cdecl; external;
+  function ma_job_queue_get_heap_size(pConfig:Pma_job_queue_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_job_queue_init_preallocated(pConfig:Pma_job_queue_config; pHeap:pointer; pQueue:Pma_job_queue):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_job_queue_init(pConfig:Pma_job_queue_config; pAllocationCallbacks:Pma_allocation_callbacks; pQueue:Pma_job_queue):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_job_queue_uninit(pQueue:Pma_job_queue; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_job_queue_post(pQueue:Pma_job_queue; pJob:Pma_job):ma_result;cdecl; external;
+
+  function ma_job_queue_next(pQueue:Pma_job_queue; pJob:Pma_job):ma_result;cdecl; external;
+  function ma_device_job_thread_config_init:ma_device_job_thread_config;cdecl; external;
+  function ma_device_job_thread_init(pConfig:Pma_device_job_thread_config; pAllocationCallbacks:Pma_allocation_callbacks; pJobThread:Pma_device_job_thread):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_device_job_thread_uninit(pJobThread:Pma_device_job_thread; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_device_job_thread_post(pJobThread:Pma_device_job_thread; pJob:Pma_job):ma_result;cdecl; external;
+
+  function ma_device_job_thread_next(pJobThread:Pma_device_job_thread; pJob:Pma_job):ma_result;cdecl; external;
+
+
+  function ma_context_init(backends:Pma_backend; backendCount:ma_uint32; pConfig:Pma_context_config; pContext:Pma_context):ma_result;cdecl; external;
+
+  function ma_context_uninit(pContext:Pma_context):ma_result;cdecl; external;
+  function ma_context_sizeof:size_t;cdecl; external;
+  function ma_context_enumerate_devices(pContext:Pma_context; callback:ma_enum_devices_callback_proc; pUserData:pointer):ma_result;cdecl; external;
+  function ma_context_get_devices(pContext:Pma_context; ppPlaybackDeviceInfos:PPma_device_info; pPlaybackDeviceCount:Pma_uint32; ppCaptureDeviceInfos:PPma_device_info; pCaptureDeviceCount:Pma_uint32):ma_result;cdecl; external;
+  function ma_context_get_device_info(pContext:Pma_context; deviceType:ma_device_type; pDeviceID:Pma_device_id; pDeviceInfo:Pma_device_info):ma_result;cdecl; external;
+  function ma_device_config_init(deviceType:ma_device_type):ma_device_config;cdecl; external;
+  function ma_device_init(pContext:Pma_context; pConfig:Pma_device_config; pDevice:Pma_device):ma_result;cdecl; external;
+  function ma_device_init_ex(backends:Pma_backend; backendCount:ma_uint32; pContextConfig:Pma_context_config; pConfig:Pma_device_config; pDevice:Pma_device):ma_result;cdecl; external;
+  procedure ma_device_uninit(pDevice:Pma_device);cdecl; external;
+  function ma_device_get_context(pDevice:Pma_device):Pma_context;cdecl; external;
+  function ma_device_get_log(pDevice:Pma_device):Pma_log;cdecl; external;
+  function ma_device_get_info(pDevice:Pma_device; _type:ma_device_type; pDeviceInfo:Pma_device_info):ma_result;cdecl; external;
+  function ma_device_get_name(pDevice:Pma_device; _type:ma_device_type; pName:Pchar; nameCap:size_t; pLengthNotIncludingNullTerminator:Psize_t):ma_result;cdecl; external;
+  function ma_device_start(pDevice:Pma_device):ma_result;cdecl; external;
+  function ma_device_stop(pDevice:Pma_device):ma_result;cdecl; external;
+  function ma_device_is_started(pDevice:Pma_device):ma_bool32;cdecl; external;
+  function ma_device_get_state(pDevice:Pma_device):ma_device_state;cdecl; external;
+  function ma_device_post_init(pDevice:Pma_device; deviceType:ma_device_type; pPlaybackDescriptor:Pma_device_descriptor; pCaptureDescriptor:Pma_device_descriptor):ma_result;cdecl; external;
+  function ma_device_set_master_volume(pDevice:Pma_device; volume:single):ma_result;cdecl; external;
+  function ma_device_get_master_volume(pDevice:Pma_device; pVolume:Psingle):ma_result;cdecl; external;
+  function ma_device_set_master_volume_db(pDevice:Pma_device; gainDB:single):ma_result;cdecl; external;
+  function ma_device_get_master_volume_db(pDevice:Pma_device; pGainDB:Psingle):ma_result;cdecl; external;
+  function ma_device_handle_backend_data_callback(pDevice:Pma_device; pOutput:pointer; pInput:pointer; frameCount:ma_uint32):ma_result;cdecl; external;
+  function ma_calculate_buffer_size_in_frames_from_descriptor(pDescriptor:Pma_device_descriptor; nativeSampleRate:ma_uint32; performanceProfile:ma_performance_profile):ma_uint32;cdecl; external;
+  function ma_get_backend_name(backend:ma_backend):Pchar;cdecl; external;
+  function ma_get_backend_from_name(pBackendName:Pchar; pBackend:Pma_backend):ma_result;cdecl; external;
+  function ma_get_enabled_backends(pBackends:Pma_backend; backendCap:size_t; pBackendCount:Psize_t):ma_result;cdecl; external;
+  function ma_is_loopback_supported(backend:ma_backend):ma_bool32;cdecl; external;
+  function ma_calculate_buffer_size_in_milliseconds_from_frames(bufferSizeInFrames:ma_uint32; sampleRate:ma_uint32):ma_uint32;cdecl; external;
+  function ma_is_backend_enabled(backend:ma_backend):ma_bool32;cdecl; external;
+  function ma_calculate_buffer_size_in_frames_from_milliseconds(bufferSizeInMilliseconds:ma_uint32; sampleRate:ma_uint32):ma_uint32;cdecl; external;
+  procedure ma_copy_pcm_frames(dst:pointer; src:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32);cdecl; external;
+  procedure ma_silence_pcm_frames(p:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32);cdecl; external;
+  function ma_offset_pcm_frames_ptr(p:pointer; offsetInFrames:ma_uint64; format:ma_format; channels:ma_uint32):pointer;cdecl; external;
+  function ma_offset_pcm_frames_const_ptr(p:pointer; offsetInFrames:ma_uint64; format:ma_format; channels:ma_uint32):pointer;cdecl; external;
+  procedure ma_clip_samples_u8(pDst:Pma_uint8; pSrc:Pma_int16; count:ma_uint64);cdecl; external;
+  procedure ma_clip_samples_s16(pDst:Pma_int16; pSrc:Pma_int32; count:ma_uint64);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_clip_samples_s24(pDst:Pma_uint8; pSrc:Pma_int64; count:ma_uint64);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_clip_samples_s32(pDst:Pma_int32; pSrc:Pma_int64; count:ma_uint64);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_clip_samples_f32(pDst:Psingle; pSrc:Psingle; count:ma_uint64);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_clip_pcm_frames(pDst:pointer; pSrc:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32);cdecl; external;
+
+  {
+  Helper for applying a volume factor to samples.
+  
+  Note that the source and destination buffers can be the same, in which case it'll perform the operation in-place.
+   }
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_u8(pSamplesOut:Pma_uint8; pSamplesIn:Pma_uint8; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_s16(pSamplesOut:Pma_int16; pSamplesIn:Pma_int16; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_s24(pSamplesOut:pointer; pSamplesIn:pointer; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_s32(pSamplesOut:Pma_int32; pSamplesIn:Pma_int32; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_f32(pSamplesOut:Psingle; pSamplesIn:Psingle; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_u8(pSamples:Pma_uint8; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_s16(pSamples:Pma_int16; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_s24(pSamples:pointer; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_s32(pSamples:Pma_int32; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_f32(pSamples:Psingle; sampleCount:ma_uint64; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_pcm_frames_u8(pFramesOut:Pma_uint8; pFramesIn:Pma_uint8; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_pcm_frames_s16(pFramesOut:Pma_int16; pFramesIn:Pma_int16; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_pcm_frames_s24(pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_pcm_frames_s32(pFramesOut:Pma_int32; pFramesIn:Pma_int32; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_pcm_frames_f32(pFramesOut:Psingle; pFramesIn:Psingle; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_pcm_frames(pFramesOut:pointer; pFramesIn:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32; 
+              factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_pcm_frames_u8(pFrames:Pma_uint8; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_pcm_frames_s16(pFrames:Pma_int16; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_pcm_frames_s24(pFrames:pointer; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_pcm_frames_s32(pFrames:Pma_int32; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_pcm_frames_f32(pFrames:Psingle; frameCount:ma_uint64; channels:ma_uint32; factor:single);cdecl; external;
+
+  procedure ma_apply_volume_factor_pcm_frames(pFrames:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32; factor:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_factor_per_channel_f32(pFramesOut:Psingle; pFramesIn:Psingle; frameCount:ma_uint64; channels:ma_uint32; pChannelGains:Psingle);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_and_clip_samples_u8(pDst:Pma_uint8; pSrc:Pma_int16; count:ma_uint64; volume:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_and_clip_samples_s16(pDst:Pma_int16; pSrc:Pma_int32; count:ma_uint64; volume:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_and_clip_samples_s24(pDst:Pma_uint8; pSrc:Pma_int64; count:ma_uint64; volume:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_and_clip_samples_s32(pDst:Pma_int32; pSrc:Pma_int64; count:ma_uint64; volume:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_and_clip_samples_f32(pDst:Psingle; pSrc:Psingle; count:ma_uint64; volume:single);cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_copy_and_apply_volume_and_clip_pcm_frames(pDst:pointer; pSrc:pointer; frameCount:ma_uint64; format:ma_format; channels:ma_uint32; 
+              volume:single);cdecl; external;
+
+  {
+  Helper for converting a linear factor to gain in decibels.
+   }
+  function ma_volume_linear_to_db(factor:single):single;cdecl; external;
+
+  {
+  Helper for converting gain in decibels to a linear factor.
+   }
+  function ma_volume_db_to_linear(gain:single):single;cdecl; external;
+
+  {
+  Mixes the specified number of frames in floating point format with a volume factor.
+  
+  This will run on an optimized path when the volume is equal to 1.
+   }
+(* Const before type ignored *)
+  function ma_mix_pcm_frames_f32(pDst:Psingle; pSrc:Psingle; frameCount:ma_uint64; channels:ma_uint32; volume:single):ma_result;cdecl; external;
+  function ma_vfs_open(pVFS:Pma_vfs; pFilePath:Pchar; openMode:ma_uint32; pFile:Pma_vfs_file):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_vfs_open_w(pVFS:Pma_vfs; pFilePath:Pwchar_t; openMode:ma_uint32; pFile:Pma_vfs_file):ma_result;cdecl; external;
+
+  function ma_vfs_close(pVFS:Pma_vfs; vfile:ma_vfs_file):ma_result;cdecl; external;
+
+  function ma_vfs_read(pVFS:Pma_vfs; vfile:ma_vfs_file; pDst:pointer; sizeInBytes:size_t; pBytesRead:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_vfs_write(pVFS:Pma_vfs; vfile:ma_vfs_file; pSrc:pointer; sizeInBytes:size_t; pBytesWritten:Psize_t):ma_result;cdecl; external;
+
+  function ma_vfs_seek(pVFS:Pma_vfs; vfile:ma_vfs_file; offset:ma_int64; origin:ma_seek_origin):ma_result;cdecl; external;
+
+  function ma_vfs_tell(pVFS:Pma_vfs; vfile:ma_vfs_file; pCursor:Pma_int64):ma_result;cdecl; external;
+
+  function ma_vfs_info(pVFS:Pma_vfs; vfile:ma_vfs_file; pInfo:Pma_file_info):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_vfs_open_and_read_file(pVFS:Pma_vfs; pFilePath:Pchar; ppData:Ppointer; pSize:Psize_t; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
+  function ma_decoding_backend_config_init(preferredFormat:ma_format; seekPointCount:ma_uint32):ma_decoding_backend_config;cdecl; external;
+  function ma_decoder_config_init(outputFormat:ma_format; outputChannels:ma_uint32; outputSampleRate:ma_uint32):ma_decoder_config;cdecl; external;
+
+  function ma_decoder_config_init_default:ma_decoder_config;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_decoder_init(onRead:ma_decoder_read_proc; onSeek:ma_decoder_seek_proc; pUserData:pointer; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_decoder_init_memory(pData:pointer; dataSize:size_t; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_decoder_init_vfs(pVFS:Pma_vfs; pFilePath:Pchar; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_decoder_init_vfs_w(pVFS:Pma_vfs; pFilePath:Pwchar_t; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_decoder_init_file(pFilePath:Pchar; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_decoder_init_file_w(pFilePath:Pwchar_t; pConfig:Pma_decoder_config; pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+  {
+  Uninitializes a decoder.
+   }
+  function ma_decoder_uninit(pDecoder:Pma_decoder):ma_result;cdecl; external;
+
+  {
+  Reads PCM frames from the given decoder.
+  
+  This is not thread safe without your own synchronization.
+   }
+  function ma_decoder_read_pcm_frames(pDecoder:Pma_decoder; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Seeks to a PCM frame based on it's absolute index.
+  
+  This is not thread safe without your own synchronization.
+   }
+  function ma_decoder_seek_to_pcm_frame(pDecoder:Pma_decoder; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  {
+  Retrieves the decoder's output data format.
+   }
+  function ma_decoder_get_data_format(pDecoder:Pma_decoder; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
+             channelMapCap:size_t):ma_result;cdecl; external;
+
+  {
+  Retrieves the current position of the read cursor in PCM frames.
+   }
+  function ma_decoder_get_cursor_in_pcm_frames(pDecoder:Pma_decoder; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Retrieves the length of the decoder in PCM frames.
+  
+  Do not call this on streams of an undefined length, such as internet radio.
+  
+  If the length is unknown or an error occurs, 0 will be returned.
+  
+  This will always return 0 for Vorbis decoders. This is due to a limitation with stb_vorbis in push mode which is what miniaudio
+  uses internally.
+  
+  For MP3's, this will decode the entire file. Do not call this in time critical scenarios.
+  
+  This function is not thread safe without your own synchronization.
+   }
+  function ma_decoder_get_length_in_pcm_frames(pDecoder:Pma_decoder; pLength:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Retrieves the number of frames that can be read before reaching the end.
+  
+  This calls `ma_decoder_get_length_in_pcm_frames()` so you need to be aware of the rules for that function, in
+  particular ensuring you do not call it on streams of an undefined length, such as internet radio.
+  
+  If the total length of the decoder cannot be retrieved, such as with Vorbis decoders, `MA_NOT_IMPLEMENTED` will be
+  returned.
+   }
+  function ma_decoder_get_available_frames(pDecoder:Pma_decoder; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
+
+  {
+  Helper for opening and decoding a file into a heap allocated block of memory. Free the returned pointer with ma_free(). On input,
+  pConfig should be set to what you want. On output it will be set to what you got.
+   }
+(* Const before type ignored *)
+  function ma_decode_from_vfs(pVFS:Pma_vfs; pFilePath:Pchar; pConfig:Pma_decoder_config; pFrameCountOut:Pma_uint64; ppPCMFramesOut:Ppointer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_decode_file(pFilePath:Pchar; pConfig:Pma_decoder_config; pFrameCountOut:Pma_uint64; ppPCMFramesOut:Ppointer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_decode_memory(pData:pointer; dataSize:size_t; pConfig:Pma_decoder_config; pFrameCountOut:Pma_uint64; ppPCMFramesOut:Ppointer):ma_result;cdecl; external;
+
+  function ma_encoder_config_init(encodingFormat:ma_encoding_format; format:ma_format; channels:ma_uint32; sampleRate:ma_uint32):ma_encoder_config;cdecl; external;
+  function ma_encoder_init(onWrite:ma_encoder_write_proc; onSeek:ma_encoder_seek_proc; pUserData:pointer; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_encoder_init_vfs(pVFS:Pma_vfs; pFilePath:Pchar; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
+  function ma_waveform_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; _type:ma_waveform_type; amplitude:double; 
+             frequency:double):ma_waveform_config;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_encoder_init_vfs_w(pVFS:Pma_vfs; pFilePath:Pwchar_t; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_encoder_init_file(pFilePath:Pchar; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_encoder_init_file_w(pFilePath:Pwchar_t; pConfig:Pma_encoder_config; pEncoder:Pma_encoder):ma_result;cdecl; external;
+
+  procedure ma_encoder_uninit(pEncoder:Pma_encoder);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_encoder_write_pcm_frames(pEncoder:Pma_encoder; pFramesIn:pointer; frameCount:ma_uint64; pFramesWritten:Pma_uint64):ma_result;cdecl; external;
+  function ma_waveform_init(pConfig:Pma_waveform_config; pWaveform:Pma_waveform):ma_result;cdecl; external;
+
+  procedure ma_waveform_uninit(pWaveform:Pma_waveform);cdecl; external;
+
+  function ma_waveform_read_pcm_frames(pWaveform:Pma_waveform; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_waveform_seek_to_pcm_frame(pWaveform:Pma_waveform; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_waveform_set_amplitude(pWaveform:Pma_waveform; amplitude:double):ma_result;cdecl; external;
+
+  function ma_waveform_set_frequency(pWaveform:Pma_waveform; frequency:double):ma_result;cdecl; external;
+
+  function ma_waveform_set_type(pWaveform:Pma_waveform; _type:ma_waveform_type):ma_result;cdecl; external;
+
+  function ma_waveform_set_sample_rate(pWaveform:Pma_waveform; sampleRate:ma_uint32):ma_result;cdecl; external;
+  function ma_pulsewave_config_init(format:ma_format; channels:ma_uint32; sampleRate:ma_uint32; dutyCycle:double; amplitude:double; 
+             frequency:double):ma_pulsewave_config;cdecl; external;
+
+  function ma_pulsewave_init(pConfig:Pma_pulsewave_config; pWaveform:Pma_pulsewave):ma_result;cdecl; external;
+
+  procedure ma_pulsewave_uninit(pWaveform:Pma_pulsewave);cdecl; external;
+
+  function ma_pulsewave_read_pcm_frames(pWaveform:Pma_pulsewave; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_pulsewave_seek_to_pcm_frame(pWaveform:Pma_pulsewave; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_pulsewave_set_amplitude(pWaveform:Pma_pulsewave; amplitude:double):ma_result;cdecl; external;
+
+  function ma_pulsewave_set_frequency(pWaveform:Pma_pulsewave; frequency:double):ma_result;cdecl; external;
+
+  function ma_pulsewave_set_sample_rate(pWaveform:Pma_pulsewave; sampleRate:ma_uint32):ma_result;cdecl; external;
+
+  function ma_pulsewave_set_duty_cycle(pWaveform:Pma_pulsewave; dutyCycle:double):ma_result;cdecl; external;
+
+  function ma_noise_config_init(format:ma_format; channels:ma_uint32; _type:ma_noise_type; seed:ma_int32; amplitude:double):ma_noise_config;cdecl; external;
+
+  function ma_noise_get_heap_size(pConfig:Pma_noise_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_noise_init_preallocated(pConfig:Pma_noise_config; pHeap:pointer; pNoise:Pma_noise):ma_result;cdecl; external;
+  function ma_resource_manager_pipeline_notifications_init:ma_resource_manager_pipeline_notifications;cdecl; external;
+
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_noise_init(pConfig:Pma_noise_config; pAllocationCallbacks:Pma_allocation_callbacks; pNoise:Pma_noise):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_noise_uninit(pNoise:Pma_noise; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_noise_read_pcm_frames(pNoise:Pma_noise; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_noise_set_amplitude(pNoise:Pma_noise; amplitude:double):ma_result;cdecl; external;
+
+  function ma_noise_set_seed(pNoise:Pma_noise; seed:ma_int32):ma_result;cdecl; external;
+
+  function ma_noise_set_type(pNoise:Pma_noise; _type:ma_noise_type):ma_result;cdecl; external;
+
+  { END BACKWARDS COMPATIBILITY  }
+  { Maximum job thread count will be restricted to this, but this may be removed later and replaced with a heap allocation thereby removing any limitation.  }
+  function ma_resource_manager_data_source_config_init:ma_resource_manager_data_source_config;cdecl; external;
+
 {$endif}
   { MA_NO_ENGINE  }
   { END SECTION: miniaudio_engine.h  }
+{ C++ end of extern C conditionnal removed }
+{$endif}
 
-{$L miniaudio.o}
+{$ifndef MA_NO_RESOURCE_MANAGER}
+  { miniaudio_h  }
+  function ma_resource_manager_config_init:ma_resource_manager_config;cdecl; external;
+  function ma_resource_manager_init(pConfig:Pma_resource_manager_config; pResourceManager:Pma_resource_manager):ma_result;cdecl; external;
+
+  procedure ma_resource_manager_uninit(pResourceManager:Pma_resource_manager);cdecl; external;
+
+  function ma_resource_manager_get_log(pResourceManager:Pma_resource_manager):Pma_log;cdecl; external;
+
+  { Registration.  }
+(* Const before type ignored *)
+  function ma_resource_manager_register_file(pResourceManager:Pma_resource_manager; pFilePath:Pchar; flags:ma_uint32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_register_file_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t; flags:ma_uint32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_register_decoded_data(pResourceManager:Pma_resource_manager; pName:Pchar; pData:pointer; frameCount:ma_uint64; format:ma_format; 
+             channels:ma_uint32; sampleRate:ma_uint32):ma_result;cdecl; external;
+
+  { Does not copy. Increments the reference count if already exists and returns MA_SUCCESS.  }
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_register_decoded_data_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t; pData:pointer; frameCount:ma_uint64; format:ma_format; 
+             channels:ma_uint32; sampleRate:ma_uint32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_register_encoded_data(pResourceManager:Pma_resource_manager; pName:Pchar; pData:pointer; sizeInBytes:size_t):ma_result;cdecl; external;
+
+  { Does not copy. Increments the reference count if already exists and returns MA_SUCCESS.  }
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_register_encoded_data_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t; pData:pointer; sizeInBytes:size_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_unregister_file(pResourceManager:Pma_resource_manager; pFilePath:Pchar):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_unregister_file_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_unregister_data(pResourceManager:Pma_resource_manager; pName:Pchar):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_unregister_data_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t):ma_result;cdecl; external;
+
+  { Data Buffers.  }
+(* Const before type ignored *)
+  function ma_resource_manager_data_buffer_init_ex(pResourceManager:Pma_resource_manager; pConfig:Pma_resource_manager_data_source_config; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_data_buffer_init(pResourceManager:Pma_resource_manager; pFilePath:Pchar; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_data_buffer_init_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_buffer_init_copy(pResourceManager:Pma_resource_manager; pExistingDataBuffer:Pma_resource_manager_data_buffer; pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_uninit(pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_read_pcm_frames(pDataBuffer:Pma_resource_manager_data_buffer; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_seek_to_pcm_frame(pDataBuffer:Pma_resource_manager_data_buffer; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_get_data_format(pDataBuffer:Pma_resource_manager_data_buffer; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
+             channelMapCap:size_t):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_get_cursor_in_pcm_frames(pDataBuffer:Pma_resource_manager_data_buffer; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_get_length_in_pcm_frames(pDataBuffer:Pma_resource_manager_data_buffer; pLength:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_buffer_result(pDataBuffer:Pma_resource_manager_data_buffer):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_buffer_set_looping(pDataBuffer:Pma_resource_manager_data_buffer; isLooping:ma_bool32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_buffer_is_looping(pDataBuffer:Pma_resource_manager_data_buffer):ma_bool32;cdecl; external;
+
+  function ma_resource_manager_data_buffer_get_available_frames(pDataBuffer:Pma_resource_manager_data_buffer; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
+
+  { Data Streams.  }
+(* Const before type ignored *)
+  function ma_resource_manager_data_stream_init_ex(pResourceManager:Pma_resource_manager; pConfig:Pma_resource_manager_data_source_config; pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_data_stream_init(pResourceManager:Pma_resource_manager; pFilePath:Pchar; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_data_stream_init_w(pResourceManager:Pma_resource_manager; pFilePath:Pwchar_t; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_uninit(pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_read_pcm_frames(pDataStream:Pma_resource_manager_data_stream; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_seek_to_pcm_frame(pDataStream:Pma_resource_manager_data_stream; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_get_data_format(pDataStream:Pma_resource_manager_data_stream; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
+             channelMapCap:size_t):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_get_cursor_in_pcm_frames(pDataStream:Pma_resource_manager_data_stream; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_get_length_in_pcm_frames(pDataStream:Pma_resource_manager_data_stream; pLength:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_stream_result(pDataStream:Pma_resource_manager_data_stream):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_stream_set_looping(pDataStream:Pma_resource_manager_data_stream; isLooping:ma_bool32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_stream_is_looping(pDataStream:Pma_resource_manager_data_stream):ma_bool32;cdecl; external;
+
+  function ma_resource_manager_data_stream_get_available_frames(pDataStream:Pma_resource_manager_data_stream; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
+
+  { Data Sources.  }
+(* Const before type ignored *)
+  function ma_resource_manager_data_source_init_ex(pResourceManager:Pma_resource_manager; pConfig:Pma_resource_manager_data_source_config; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_data_source_init(pResourceManager:Pma_resource_manager; pName:Pchar; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_resource_manager_data_source_init_w(pResourceManager:Pma_resource_manager; pName:Pwchar_t; flags:ma_uint32; pNotifications:Pma_resource_manager_pipeline_notifications; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_source_init_copy(pResourceManager:Pma_resource_manager; pExistingDataSource:Pma_resource_manager_data_source; pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_uninit(pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_read_pcm_frames(pDataSource:Pma_resource_manager_data_source; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_seek_to_pcm_frame(pDataSource:Pma_resource_manager_data_source; frameIndex:ma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_get_data_format(pDataSource:Pma_resource_manager_data_source; pFormat:Pma_format; pChannels:Pma_uint32; pSampleRate:Pma_uint32; pChannelMap:Pma_channel; 
+             channelMapCap:size_t):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_get_cursor_in_pcm_frames(pDataSource:Pma_resource_manager_data_source; pCursor:Pma_uint64):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_get_length_in_pcm_frames(pDataSource:Pma_resource_manager_data_source; pLength:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_source_result(pDataSource:Pma_resource_manager_data_source):ma_result;cdecl; external;
+
+  function ma_resource_manager_data_source_set_looping(pDataSource:Pma_resource_manager_data_source; isLooping:ma_bool32):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_resource_manager_data_source_is_looping(pDataSource:Pma_resource_manager_data_source):ma_bool32;cdecl; external;
+
+  function ma_resource_manager_data_source_get_available_frames(pDataSource:Pma_resource_manager_data_source; pAvailableFrames:Pma_uint64):ma_result;cdecl; external;
+
+  { Job management.  }
+(* Const before type ignored *)
+  function ma_resource_manager_post_job(pResourceManager:Pma_resource_manager; pJob:Pma_job):ma_result;cdecl; external;
+
+  function ma_resource_manager_post_job_quit(pResourceManager:Pma_resource_manager):ma_result;cdecl; external;
+
+  { Helper for posting a quit job.  }
+  function ma_resource_manager_next_job(pResourceManager:Pma_resource_manager; pJob:Pma_job):ma_result;cdecl; external;
+
+  function ma_resource_manager_process_job(pResourceManager:Pma_resource_manager; pJob:Pma_job):ma_result;cdecl; external;
+
+  { DEPRECATED. Use ma_job_process(). Will be removed in version 0.12.  }
+  function ma_resource_manager_process_next_job(pResourceManager:Pma_resource_manager):ma_result;cdecl; external;
+
+{$endif}
+
+
+  { Use this when the bus count is determined by the node instance rather than the vtable.  }
+
+  const
+    MA_NODE_BUS_COUNT_UNKNOWN = 255;    
+
+  function ma_node_config_init:ma_node_config;cdecl; external;
+  function ma_node_get_heap_size(pNodeGraph:Pma_node_graph; pConfig:Pma_node_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_init_preallocated(pNodeGraph:Pma_node_graph; pConfig:Pma_node_config; pHeap:pointer; pNode:Pma_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_node_uninit(pNode:Pma_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_node_graph(pNode:Pma_node):Pma_node_graph;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_input_bus_count(pNode:Pma_node):ma_uint32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_output_bus_count(pNode:Pma_node):ma_uint32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_input_channels(pNode:Pma_node; inputBusIndex:ma_uint32):ma_uint32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_output_channels(pNode:Pma_node; outputBusIndex:ma_uint32):ma_uint32;cdecl; external;
+
+  function ma_node_attach_output_bus(pNode:Pma_node; outputBusIndex:ma_uint32; pOtherNode:Pma_node; otherNodeInputBusIndex:ma_uint32):ma_result;cdecl; external;
+
+  function ma_node_detach_output_bus(pNode:Pma_node; outputBusIndex:ma_uint32):ma_result;cdecl; external;
+
+  function ma_node_detach_all_output_buses(pNode:Pma_node):ma_result;cdecl; external;
+
+  function ma_node_set_output_bus_volume(pNode:Pma_node; outputBusIndex:ma_uint32; volume:single):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_output_bus_volume(pNode:Pma_node; outputBusIndex:ma_uint32):single;cdecl; external;
+
+  function ma_node_set_state(pNode:Pma_node; state:ma_node_state):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_state(pNode:Pma_node):ma_node_state;cdecl; external;
+
+  function ma_node_set_state_time(pNode:Pma_node; state:ma_node_state; globalTime:ma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_state_time(pNode:Pma_node; state:ma_node_state):ma_uint64;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_state_by_time(pNode:Pma_node; globalTime:ma_uint64):ma_node_state;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_state_by_time_range(pNode:Pma_node; globalTimeBeg:ma_uint64; globalTimeEnd:ma_uint64):ma_node_state;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_get_time(pNode:Pma_node):ma_uint64;cdecl; external;
+
+  function ma_node_set_time(pNode:Pma_node; localTime:ma_uint64):ma_result;cdecl; external;
+
+  function ma_node_graph_config_init(channels:ma_uint32):ma_node_graph_config;cdecl; external;
+  function ma_node_graph_init(pConfig:Pma_node_graph_config; pAllocationCallbacks:Pma_allocation_callbacks; pNodeGraph:Pma_node_graph):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_node_graph_uninit(pNodeGraph:Pma_node_graph; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_node_graph_get_endpoint(pNodeGraph:Pma_node_graph):Pma_node;cdecl; external;
+
+  function ma_node_graph_read_pcm_frames(pNodeGraph:Pma_node_graph; pFramesOut:pointer; frameCount:ma_uint64; pFramesRead:Pma_uint64):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_graph_get_channels(pNodeGraph:Pma_node_graph):ma_uint32;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_node_graph_get_time(pNodeGraph:Pma_node_graph):ma_uint64;cdecl; external;
+
+  function ma_node_graph_set_time(pNodeGraph:Pma_node_graph; globalTime:ma_uint64):ma_result;cdecl; external;
+
+  function ma_data_source_node_config_init(pDataSource:Pma_data_source):ma_data_source_node_config;cdecl; external;
+  function ma_data_source_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_data_source_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pDataSourceNode:Pma_data_source_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_data_source_node_uninit(pDataSourceNode:Pma_data_source_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_data_source_node_set_looping(pDataSourceNode:Pma_data_source_node; isLooping:ma_bool32):ma_result;cdecl; external;
+
+  function ma_data_source_node_is_looping(pDataSourceNode:Pma_data_source_node):ma_bool32;cdecl; external;
+
+  function ma_splitter_node_config_init(channels:ma_uint32):ma_splitter_node_config;cdecl; external;
+  function ma_splitter_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_splitter_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pSplitterNode:Pma_splitter_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_splitter_node_uninit(pSplitterNode:Pma_splitter_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_biquad_node_config_init(channels:ma_uint32; b0:single; b1:single; b2:single; a0:single; 
+             a1:single; a2:single):ma_biquad_node_config;cdecl; external;
+
+  function ma_biquad_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_biquad_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_biquad_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_biquad_node_reinit(pConfig:Pma_biquad_config; pNode:Pma_biquad_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_biquad_node_uninit(pNode:Pma_biquad_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+
+  function ma_lpf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_lpf_node_config;cdecl; external;
+
+
+
+  function ma_lpf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_lpf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_lpf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_lpf_node_reinit(pConfig:Pma_lpf_config; pNode:Pma_lpf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_lpf_node_uninit(pNode:Pma_lpf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  
+  function ma_hpf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_hpf_node_config;cdecl; external;
+
+  function ma_hpf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_hpf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_hpf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hpf_node_reinit(pConfig:Pma_hpf_config; pNode:Pma_hpf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_hpf_node_uninit(pNode:Pma_hpf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+  function ma_bpf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; cutoffFrequency:double; order:ma_uint32):ma_bpf_node_config;cdecl; external;
+
+  function ma_bpf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_bpf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_bpf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_bpf_node_reinit(pConfig:Pma_bpf_config; pNode:Pma_bpf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_bpf_node_uninit(pNode:Pma_bpf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+  function ma_notch_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; q:double; frequency:double):ma_notch_node_config;cdecl; external;
+
+
+
+  function ma_notch_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_notch_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_notch_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_notch_node_reinit(pConfig:Pma_notch_config; pNode:Pma_notch_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_notch_node_uninit(pNode:Pma_notch_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_peak_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; frequency:double):ma_peak_node_config;cdecl; external;
+
+
+  function ma_peak_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_peak_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_peak_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_peak_node_reinit(pConfig:Pma_peak_config; pNode:Pma_peak_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_peak_node_uninit(pNode:Pma_peak_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+
+  function ma_loshelf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; frequency:double):ma_loshelf_node_config;cdecl; external;
+
+
+  function ma_loshelf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_loshelf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_loshelf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_loshelf_node_reinit(pConfig:Pma_loshelf_config; pNode:Pma_loshelf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_loshelf_node_uninit(pNode:Pma_loshelf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+
+  function ma_hishelf_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; gainDB:double; q:double; frequency:double):ma_hishelf_node_config;cdecl; external;
+
+
+
+  function ma_hishelf_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_hishelf_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pNode:Pma_hishelf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_hishelf_node_reinit(pConfig:Pma_hishelf_config; pNode:Pma_hishelf_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_hishelf_node_uninit(pNode:Pma_hishelf_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+
+  function ma_delay_node_config_init(channels:ma_uint32; sampleRate:ma_uint32; delayInFrames:ma_uint32; decay:single):ma_delay_node_config;cdecl; external;
+
+  function ma_delay_node_init(pNodeGraph:Pma_node_graph; pConfig:Pma_delay_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pDelayNode:Pma_delay_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_delay_node_uninit(pDelayNode:Pma_delay_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  procedure ma_delay_node_set_wet(pDelayNode:Pma_delay_node; value:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_node_get_wet(pDelayNode:Pma_delay_node):single;cdecl; external;
+
+  procedure ma_delay_node_set_dry(pDelayNode:Pma_delay_node; value:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_node_get_dry(pDelayNode:Pma_delay_node):single;cdecl; external;
+
+  procedure ma_delay_node_set_decay(pDelayNode:Pma_delay_node; value:single);cdecl; external;
+
+(* Const before type ignored *)
+  function ma_delay_node_get_decay(pDelayNode:Pma_delay_node):single;cdecl; external;
+  { was #define dname def_expr }
+  function MA_LISTENER_INDEX_CLOSEST : ma_uint8;cdecl; external;    
+  function ma_engine_node_config_init(pEngine:Pma_engine; _type:ma_engine_node_type; flags:ma_uint32):ma_engine_node_config;cdecl; external;
+  function ma_engine_node_get_heap_size(pConfig:Pma_engine_node_config; pHeapSizeInBytes:Psize_t):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  function ma_engine_node_init_preallocated(pConfig:Pma_engine_node_config; pHeap:pointer; pEngineNode:Pma_engine_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function ma_engine_node_init(pConfig:Pma_engine_node_config; pAllocationCallbacks:Pma_allocation_callbacks; pEngineNode:Pma_engine_node):ma_result;cdecl; external;
+
+(* Const before type ignored *)
+  procedure ma_engine_node_uninit(pEngineNode:Pma_engine_node; pAllocationCallbacks:Pma_allocation_callbacks);cdecl; external;
+
+  function ma_sound_config_init:ma_sound_config;cdecl; external;
+
+  { Deprecated. Will be removed in version 0.12. Use ma_sound_config_2() instead.  }
+  function ma_sound_config_init_2(pEngine:Pma_engine):ma_sound_config;cdecl; external;
+  function ma_sound_group_config_init:ma_sound_group_config;cdecl; external;
+
+  { Deprecated. Will be removed in version 0.12. Use ma_sound_config_2() instead.  }
+  function ma_sound_group_config_init_2(pEngine:Pma_engine):ma_sound_group_config;cdecl; external;
+
+  { Will be renamed to ma_sound_config_init() in version 0.12.  }
+  function ma_engine_config_init:ma_engine_config;cdecl; external;
+  procedure ma_version(pMajor:Pma_uint32; pMinor:Pma_uint32; pRevision:Pma_uint32);cdecl; external;
+  function ma_context_is_loopback_supported(pContext:Pma_context):ma_bool32;cdecl; external;
+  function ma_context_get_log(pContext:Pma_context):Pma_log;cdecl; external;
+  function ma_context_config_init:ma_context_config;cdecl; external;
+  function ma_version_string:Pchar;cdecl; external;
+  function ma_paged_audio_buffer_config_init(pData:Pma_paged_audio_buffer_data):ma_paged_audio_buffer_config;cdecl; external;
+  function ma_default_vfs_init(pVFS:Pma_default_vfs; pAllocationCallbacks:Pma_allocation_callbacks):ma_result;cdecl; external;
+
+
 
 implementation
-
-  { was #define dname def_expr }
-{function MA_LISTENER_INDEX_CLOSEST : ma_uint8;
-    begin
-      MA_LISTENER_INDEX_CLOSEST:=ma_uint8(-(1));
-    end;}
-
 
 end.
