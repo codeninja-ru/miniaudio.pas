@@ -1,3 +1,5 @@
 *.swp
 *.o
 *.ppu
+example_simple_playback
+example_simple_playback_sine
