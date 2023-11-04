@@ -1,4 +1,4 @@
-# miniaudio.pas
+# miniaudio.pp
 
 pascal binding for miniaudio.h
 
@@ -7,6 +7,7 @@ I'm not sure about the correctness of the macros, so you use it on your own risk
 
 uses miniaudio - v0.11.18 - 2023-08-07
 
+*It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.*
 
 ## Uage
 
@@ -16,7 +17,25 @@ Compile miniaudio.c for your platform with gcc and link it to miniaudio.pp
 make build
 ```
 
-It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.
+Alternatively, you can build the library and examples with debug information.
+
+
+```
+make debug
+```
+
+Put _miniaudio.pp_ and the object file (_miniaudio_lib.obj_) into your project folder and then you can use as usual.
+
+```pascal
+program example;
+
+uses miniaudio;
+
+begin
+  // your code is here
+end.
+```
+
 
 ## Help
 more information about miniaudio
