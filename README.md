@@ -7,7 +7,7 @@ I'm not sure about the correctness of the macros, so you use it on your own risk
 
 uses miniaudio - v0.11.18 - 2023-08-07
 
-*It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.*
+**It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.**
 
 ## Uage
 
@@ -24,7 +24,7 @@ Alternatively, you can build the library and examples with debug information.
 make debug
 ```
 
-Put _miniaudio.pp_ and the object file (_miniaudio_lib.obj_) into your project folder and then you can use as usual.
+Put `miniaudio.pp` and the object file (`miniaudio_lib.obj`) into your project folder and then you can use as usual.
 
 ```pascal
 program example;
