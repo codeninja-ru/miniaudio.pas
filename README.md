@@ -38,6 +38,7 @@ begin
 end.
 ```
 
+See the examples.
 
 ## Help
 more information about miniaudio
