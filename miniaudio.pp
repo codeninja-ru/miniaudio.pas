@@ -9,7 +9,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
   The following command line parameters were used:
     miniaudio.h
 }
-{$L miniaudio_obj.o}
+{$L miniaudio_lib.o}
 
     const MA_MAX_LOG_CALLBACKS = 4;
 {$if defined(cpu64)}
@@ -6563,8 +6563,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
         pDeviceInfos : ^ma_device_info;
         todo1 : record
           {$ifdef MA_SUPPORT_WASAPI}
-            case longint of
-              0 : ( wasapi : record
+              wasapi : record
                   commandThread : ma_thread;
                   commandLock : ma_mutex;
                   commandSem : ma_semaphore;
@@ -6576,19 +6575,19 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   AvRevertMmThreadcharacteristics : ma_proc;
                   hMMDevapi : ma_handle;
                   ActivateAudioInterfaceAsync : ma_proc;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_DSOUND}
-              1 : ( dsound : record
+              dsound : record
                   hDSoundDLL : ma_handle;
                   DirectSoundCreate : ma_proc;
                   DirectSoundEnumerateA : ma_proc;
                   DirectSoundCaptureCreate : ma_proc;
                   DirectSoundCaptureEnumerateA : ma_proc;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_WINMM}
-              2 : ( winmm : record
+              winmm : record
                   hWinMM : ma_handle;
                   waveOutGetNumDevs : ma_proc;
                   waveOutGetDevCapsA : ma_proc;
@@ -6607,10 +6606,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   waveInAddBuffer : ma_proc;
                   waveInStart : ma_proc;
                   waveInReset : ma_proc;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_ALSA}
-              3 : ( alsa : record
+              alsa : record
                   asoundSO : ma_handle;
                   snd_pcm_open : ma_proc;
                   snd_pcm_close : ma_proc;
@@ -6680,10 +6679,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   snd_config_update_free_global : ma_proc;
                   internalDeviceEnumLock : ma_mutex;
                   useVerboseDeviceEnumeration : ma_bool32;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_PULSEAUDIO}
-              4 : ( pulse : record
+              pulse : record
                   pulseSO : ma_handle;
                   pa_mainloop_new : ma_proc;
                   pa_mainloop_free : ma_proc;
@@ -6750,10 +6749,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   pPulseContext : ma_ptr;
                   pApplicationName : ^char;
                   pServerName : ^char;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_JACK}
-              5 : ( jack : record
+              jack : record
                   jackSO : ma_handle;
                   jack_client_open : ma_proc;
                   jack_client_close : ma_proc;
@@ -6773,10 +6772,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   jack_free : ma_proc;
                   pClientName : ^char;
                   tryStartServer : ma_bool32;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_COREAUDIO}
-              6 : ( coreaudio : record
+              coreaudio : record
                   hCoreFoundation : ma_handle;
                   CFStringGetCString : ma_proc;
                   CFRelease : ma_proc;
@@ -6800,10 +6799,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   AudioUnitRender : ma_proc;
                   component : ma_ptr;
                   noAudioSessionDeactivate : ma_bool32;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_SNDIO}
-              7 : ( sndio : record
+              sndio : record
                   sndioSO : ma_handle;
                   sio_open : ma_proc;
                   sio_close : ma_proc;
@@ -6822,21 +6821,21 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   sio_setvol : ma_proc;
                   sio_onvol : ma_proc;
                   sio_initpar : ma_proc;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_AUDIO4}
-              8 : ( audio4 : record
+              audio4 : record
                   _unused : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_OSS}
-              9 : ( oss : record
+              oss : record
                   versionMajor : longint;
                   versionMinor : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_AAUDIO}
-              10 : ( aaudio : record
+               aaudio : record
                   hAAudio : ma_handle;
                   AAudio_createStreamBuilder : ma_proc;
                   AAudioStreamBuilder_delete : ma_proc;
@@ -6868,10 +6867,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   AAudioStream_requestStart : ma_proc;
                   AAudioStream_requestStop : ma_proc;
                   jobThread : ma_device_job_thread;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_OPENSL}
-              11 : ( opensl : record
+              opensl : record
                   libOpenSLES : ma_handle;
                   SL_IID_ENGINE : ma_handle;
                   SL_IID_AUDIOIODEVICECAPABILITIES : ma_handle;
@@ -6881,23 +6880,22 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   SL_IID_OUTPUTMIX : ma_handle;
                   SL_IID_ANDROIDCONFIGURATION : ma_handle;
                   slCreateEngine : ma_proc;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_WEBAUDIO}
-              12 : ( webaudio : record
+              webaudio : record
                   _unused : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_NULL}
-              13 : ( null_backend : record
+              null_backend : record
                   _unused : longint;
-                end );
+                end;
           {$endif}
             end;
-        todo2 : record
+        _ex2 : record
           {$ifdef MA_WIN32}
-            case longint of
-              0 : ( win32 : record
+               win32 : record
                   hOle32DLL : ma_handle;
                   CoInitialize : ma_proc;
                   CoInitializeEx : ma_proc;
@@ -6914,14 +6912,14 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   RegCloseKey : ma_proc;
                   RegQueryValueExA : ma_proc;
                   CoInitializeResult : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_POSIX}
-              1 : ( posix : record
+              posix : record
                   _unused : longint;
-                end );
+                end;
           {$endif}
-              2 : ( _unused : longint );
+               _unused : longint;
             end;
       end;
 
@@ -7080,10 +7078,9 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
             intermediaryBufferCap : ma_uint32;
             intermediaryBufferLen : ma_uint32;
           end;
-        todo : record
-            case longint of
+        _ex : record
           {$ifdef MA_SUPPORT_WASAPI}
-              0 : ( wasapi : record
+               wasapi : record
                   pAudioClientPlayback : ma_ptr;
                   pAudioClientCapture : ma_ptr;
                   pRenderClient : ma_ptr;
@@ -7120,19 +7117,19 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   usage : ma_wasapi_usage;
                   hAvrtHandle : pointer;
                   rerouteLock : ma_mutex;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_DSOUND}
-              1 : ( dsound : record
+               dsound : record
                   pPlayback : ma_ptr;
                   pPlaybackPrimaryBuffer : ma_ptr;
                   pPlaybackBuffer : ma_ptr;
                   pCapture : ma_ptr;
                   pCaptureBuffer : ma_ptr;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_WINMM}
-              2 : ( winmm : record
+               winmm : record
                   hDevicePlayback : ma_handle;
                   hDeviceCapture : ma_handle;
                   hEventPlayback : ma_handle;
@@ -7147,10 +7144,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   pIntermediaryBufferPlayback : ^ma_uint8;
                   pIntermediaryBufferCapture : ^ma_uint8;
                   _pHeapData : ^ma_uint8;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_ALSA}
-              3 : ( alsa : record
+              alsa : record
                   pPCMPlayback : ma_ptr;
                   pPCMCapture : ma_ptr;
                   pPollDescriptorsPlayback : pointer;
@@ -7161,27 +7158,27 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   wakeupfdCapture : longint;
                   isUsingMMapPlayback : ma_bool8;
                   isUsingMMapCapture : ma_bool8;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_PULSEAUDIO}
-              4 : ( pulse : record
+               pulse : record
                   pMainLoop : ma_ptr;
                   pPulseContext : ma_ptr;
                   pStreamPlayback : ma_ptr;
                   pStreamCapture : ma_ptr;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_JACK}
-              5 : ( jack : record
+              jack : record
                   pClient : ma_ptr;
                   ppPortsPlayback : ^ma_ptr;
                   ppPortsCapture : ^ma_ptr;
                   pIntermediaryBufferPlayback : ^single;
                   pIntermediaryBufferCapture : ^single;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_COREAUDIO}
-              6 : ( coreaudio : record
+               coreaudio : record
                   deviceObjectIDPlayback : ma_uint32;
                   deviceObjectIDCapture : ma_uint32;
                   audioUnitPlayback : ma_ptr;
@@ -7198,30 +7195,30 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   isSwitchingPlaybackDevice : ma_bool32;
                   isSwitchingCaptureDevice : ma_bool32;
                   pNotificationHandler : pointer;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_SNDIO}
-              7 : ( sndio : record
+               sndio : record
                   handlePlayback : ma_ptr;
                   handleCapture : ma_ptr;
                   isStartedPlayback : ma_bool32;
                   isStartedCapture : ma_bool32;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_AUDIO4}
-              8 : ( audio4 : record
+               audio4 : record
                   fdPlayback : longint;
                   fdCapture : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_OSS}
-              9 : ( oss : record
+               oss : record
                   fdPlayback : longint;
                   fdCapture : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_AAUDIO}
-              10 : ( aaudio : record
+               aaudio : record
                   pStreamPlayback : ma_ptr;
                   pStreamCapture : ma_ptr;
                   usage : ma_aaudio_usage;
@@ -7229,10 +7226,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   inputPreset : ma_aaudio_input_preset;
                   allowedCapturePolicy : ma_aaudio_allowed_capture_policy;
                   noAutoStartAfterReroute : ma_bool32;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_OPENSL}
-              11 : ( opensl : record
+               opensl : record
                   pOutputMixObj : ma_ptr;
                   pOutputMix : ma_ptr;
                   pAudioPlayerObj : ma_ptr;
@@ -7247,20 +7244,20 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   currentBufferIndexCapture : ma_uint32;
                   pBufferPlayback : ^ma_uint8;
                   pBufferCapture : ^ma_uint8;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_WEBAUDIO}
-              12 : ( webaudio : record
+               webaudio : record
                   audioContext : longint;
                   audioWorklet : longint;
                   pIntermediaryBuffer : ^single;
                   pStackBuffer : pointer;
                   initResult : ma_result;
                   deviceIndex : longint;
-                end );
+                end;
           {$endif}
           {$ifdef MA_SUPPORT_NULL}
-              13 : ( null_device : record
+               null_device : record
                   deviceThread : ma_thread;
                   operationEvent : ma_event;
                   operationCompletionEvent : ma_event;
@@ -7274,7 +7271,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
                   lastProcessedFramePlayback : ma_uint64;
                   lastProcessedFrameCapture : ma_uint64;
                   isStarted : ma_atomic_bool32;
-                end );
+                end;
           {$endif}
             end;
       end;
