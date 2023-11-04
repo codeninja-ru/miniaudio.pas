@@ -7,11 +7,13 @@ I'm not sure about the correctness of the macros, so you use it on your own risk
 
 uses miniaudio - v0.11.18 - 2023-08-07
 
-**It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.**
+**It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.** 
 
 ## Uage
 
-Compile miniaudio.c for your platform with gcc and link it to miniaudio.pp
+Compile miniaudio.c for your platform with gcc and link it to miniaudio.pp.
+Requirements: GCC, Free Pascal
+For Windows you'll probably need to make some changes in Makefile or build the library manually.
 
 ```
 make build
