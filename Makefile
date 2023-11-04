@@ -1,12 +1,26 @@
+EXAMPLE_TARGETS = example_simple_playback_sine example_simple_playback
+MINIAUDIO_SOURCE = miniaudio_lib.c
+MINIAUDIO_OUT = miniaudio_lib.o
+.PHONY: examples debug build
+
 clean:
 	-rm *.res
 	-rm *.o
 	-rm *.ppu
-build: clean
-	gcc -c miniaudio.c -o miniaudio_obj.o
-	fpc example_simple_playback_sine.pas
-	fpc example_simple_playback.pas
-debug: clean
-	gcc -g -c miniaudio.c -o miniaudio_obj.o
-	fpc -g example_simple_playback_sine.pas
-	fpc -g example_simple_playback.pas
+	-rm $(EXAMPLE_TARGETS)
+
+miniaudio:
+	@echo "Build: $(MINIAUDIO_SOURCE)"
+	gcc $(flag) -c $(MINIAUDIO_SOURCE) -o $(MINIAUDIO_OUT)
+
+$(EXAMPLE_TARGETS):
+	@echo "Build example: $@"
+	fpc $(flag) $@.pas
+
+examples: $(EXAMPLE_TARGETS)
+
+build: clean miniaudio examples
+
+debug: flag = -g
+
+debug: build

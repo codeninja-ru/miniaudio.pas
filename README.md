@@ -16,7 +16,7 @@ Compile miniaudio.c for your platform with gcc and link it to miniaudio.pp
 make build
 ```
 
-It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ${L miniaudio_obj.o} directive in miniaudio.pp if needed.
+It was tested on macOS, but you can compile miniaudio.c for your platform. In general, you need to obtain an object file and update the ```${L miniaudio_lib.o}``` directive in miniaudio.pp if needed.
 
 ## Help
 more information about miniaudio
