@@ -11,7 +11,7 @@ procedure dataCallback(pDevice: Pma_device;
 var pDecoder: Pma_decoder;
 begin
   pDecoder := pDevice^.pUserData;
-  if pDecoder <> nil then Exit;
+  if pDecoder = nil then Exit;
 
   ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, nil);
 end;
@@ -29,7 +29,7 @@ begin
     Exit;
   end;
 
-  filename := paramStr(0);
+  filename := paramStr(1);
   result := ma_decoder_init_file(PChar(filename), nil, @decoder);
   if result <> MA_SUCCESS then
   begin
