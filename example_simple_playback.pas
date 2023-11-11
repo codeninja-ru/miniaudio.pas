@@ -33,7 +33,7 @@ begin
   result := ma_decoder_init_file(PChar(filename), nil, @decoder);
   if result <> MA_SUCCESS then
   begin
-    writeln('Cound not load file: ' + paramStr(0));
+    writeln('Cound not load file: ' + filename);
     Exit;
   end;
 
