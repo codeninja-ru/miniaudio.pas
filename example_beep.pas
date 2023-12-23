@@ -25,6 +25,7 @@ type
     pUserData: pointer;
   end;
   PADSREnvelope = ^ADSREnvelope;
+
 procedure dataCallback(pDevice: Pma_device;
   pOutput: pointer;
   pInput: pointer;

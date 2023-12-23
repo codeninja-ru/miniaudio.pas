@@ -3963,12 +3963,12 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 {$ifndef miniaudio_h}
 {$define miniaudio_h}  
 { C++ extern C conditionnal removed }
-{$if defined(_MSC_VER) && NOT defined(__clang__)}
+{$if defined(_MSC_VER) AND NOT defined(__clang__)}
 (** unsupported pragma#pragma warning(push)*)
 (** unsupported pragma#pragma warning(disable:4201)   /* nonstandard extension used: nameless struct/union */*)
 (** unsupported pragma#pragma warning(disable:4214)   /* nonstandard extension used: bit field types other than int */*)
 (** unsupported pragma#pragma warning(disable:4324)   /* structure was padded due to alignment specifier */*)
-(*** was #elif ****){$else defined(__clang__) OR (defined(__GNUC__) && (__GNUC__ > 4 OR (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)))}
+(*** was #elif ****){$else defined(__clang__) OR (defined(__GNUC__) AND (__GNUC__ > 4 OR (__GNUC__ == 4 AND __GNUC_MINOR__ >= 8)))}
 (** unsupported pragma#pragma GCC diagnostic push*)
 (** unsupported pragma#pragma GCC diagnostic ignored "-Wpedantic" /* For ISO C99 doesn't support unnamed structs/unions [-Wpedantic] */*)
 {$endif}
@@ -4035,7 +4035,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 
     ma_proc = pointer;
 {$endif}
-{$if defined(_MSC_VER) && NOT defined(_WCHAR_T_DEFINED)}
+{$if defined(_MSC_VER) AND NOT defined(_WCHAR_T_DEFINED)}
 
     wchar_t = ma_uint16;
 {$endif}
@@ -4099,7 +4099,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 {$define MA_HAIKU}  
 {$endif}
 {$endif}
-{$if NOT defined(MA_FALLTHROUGH) && defined(__has_attribute) && (defined(__clang__) OR defined(__GNUC__))}
+{$if NOT defined(MA_FALLTHROUGH) AND defined(__has_attribute) AND (defined(__clang__) OR defined(__GNUC__))}
 {$endif}
   {
       I've had a bug report where GCC is emitting warnings about functions possibly not being inlineable. This warning happens when
@@ -4118,7 +4118,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
   wchar_t for it's IDs, we need a special explicitly sized wchar type that is always 2 bytes on all
   platforms.
    }
-{$if NOT defined(MA_POSIX) && defined(WIN32)}
+{$if NOT defined(MA_POSIX) AND defined(WIN32)}
     ma_wchar_win32 = wchar_t;
 {$else}
     ma_wchar_win32 = ma_uint16;
@@ -5740,13 +5740,13 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 {$endif}
 {$endif}
 {$endif}
-{$if defined(MA_UNIX) && NOT defined(MA_ORBIS) && NOT defined(MA_PROSPERO)}
+{$if defined(MA_UNIX) AND NOT defined(MA_ORBIS) AND NOT defined(MA_PROSPERO)}
 {$if defined(MA_LINUX)}
-{$if NOT defined(MA_ANDROID) && NOT defined(__COSMOPOLITAN__)   /* ALSA is not supported on Android. */}
+{$if NOT defined(MA_ANDROID) AND NOT defined(__COSMOPOLITAN__)   /* ALSA is not supported on Android. */}
 {$define MA_SUPPORT_ALSA}  
 {$endif}
 {$endif}
-{$if NOT defined(MA_BSD) && NOT defined(MA_ANDROID) && NOT defined(MA_EMSCRIPTEN)}
+{$if NOT defined(MA_BSD) AND NOT defined(MA_ANDROID) AND NOT defined(MA_EMSCRIPTEN)}
 {$define MA_SUPPORT_PULSEAUDIO}  
 {$define MA_SUPPORT_JACK}  
 {$endif}
@@ -5779,49 +5779,49 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 {$if NOT defined(MA_EMSCRIPTEN)}
 {$define MA_SUPPORT_NULL}  
 {$endif}
-{$if defined(MA_SUPPORT_WASAPI) && NOT defined(MA_NO_WASAPI) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WASAPI))}
+{$if defined(MA_SUPPORT_WASAPI) AND NOT defined(MA_NO_WASAPI) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WASAPI))}
 {$define MA_HAS_WASAPI}  
 {$endif}
-{$if defined(MA_SUPPORT_DSOUND) && NOT defined(MA_NO_DSOUND) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_DSOUND))}
+{$if defined(MA_SUPPORT_DSOUND) AND NOT defined(MA_NO_DSOUND) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_DSOUND))}
 {$define MA_HAS_DSOUND}  
 {$endif}
-{$if defined(MA_SUPPORT_WINMM) && NOT defined(MA_NO_WINMM) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WINMM))}
+{$if defined(MA_SUPPORT_WINMM) AND NOT defined(MA_NO_WINMM) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WINMM))}
 {$define MA_HAS_WINMM}  
 {$endif}
-{$if defined(MA_SUPPORT_ALSA) && NOT defined(MA_NO_ALSA) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_ALSA))}
+{$if defined(MA_SUPPORT_ALSA) AND NOT defined(MA_NO_ALSA) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_ALSA))}
 {$define MA_HAS_ALSA}  
 {$endif}
-{$if defined(MA_SUPPORT_PULSEAUDIO) && NOT defined(MA_NO_PULSEAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_PULSEAUDIO))}
+{$if defined(MA_SUPPORT_PULSEAUDIO) AND NOT defined(MA_NO_PULSEAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_PULSEAUDIO))}
 {$define MA_HAS_PULSEAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_JACK) && NOT defined(MA_NO_JACK) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_JACK))}
+{$if defined(MA_SUPPORT_JACK) AND NOT defined(MA_NO_JACK) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_JACK))}
 {$define MA_HAS_JACK}  
 {$endif}
-{$if defined(MA_SUPPORT_COREAUDIO) && NOT defined(MA_NO_COREAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_COREAUDIO))}
+{$if defined(MA_SUPPORT_COREAUDIO) AND NOT defined(MA_NO_COREAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_COREAUDIO))}
 {$define MA_HAS_COREAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_SNDIO) && NOT defined(MA_NO_SNDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_SNDIO))}
+{$if defined(MA_SUPPORT_SNDIO) AND NOT defined(MA_NO_SNDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_SNDIO))}
 {$define MA_HAS_SNDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_AUDIO4) && NOT defined(MA_NO_AUDIO4) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AUDIO4))}
+{$if defined(MA_SUPPORT_AUDIO4) AND NOT defined(MA_NO_AUDIO4) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AUDIO4))}
 {$define MA_HAS_AUDIO4}  
 {$endif}
-{$if defined(MA_SUPPORT_OSS) && NOT defined(MA_NO_OSS) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OSS))}
+{$if defined(MA_SUPPORT_OSS) AND NOT defined(MA_NO_OSS) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OSS))}
 {$define MA_HAS_OSS}  
 {$endif}
-{$if defined(MA_SUPPORT_AAUDIO) && NOT defined(MA_NO_AAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AAUDIO))}
+{$if defined(MA_SUPPORT_AAUDIO) AND NOT defined(MA_NO_AAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_AAUDIO))}
 {$define MA_HAS_AAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_OPENSL) && NOT defined(MA_NO_OPENSL) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OPENSL))}
+{$if defined(MA_SUPPORT_OPENSL) AND NOT defined(MA_NO_OPENSL) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_OPENSL))}
 {$define MA_HAS_OPENSL}  
 {$endif}
-{$if defined(MA_SUPPORT_WEBAUDIO) && NOT defined(MA_NO_WEBAUDIO) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WEBAUDIO))}
+{$if defined(MA_SUPPORT_WEBAUDIO) AND NOT defined(MA_NO_WEBAUDIO) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_WEBAUDIO))}
 {$define MA_HAS_WEBAUDIO}  
 {$endif}
-{$if defined(MA_SUPPORT_CUSTOM) && NOT defined(MA_NO_CUSTOM) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_CUSTOM))}
+{$if defined(MA_SUPPORT_CUSTOM) AND NOT defined(MA_NO_CUSTOM) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_CUSTOM))}
 {$define MA_HAS_CUSTOM}  
 {$endif}
-{$if defined(MA_SUPPORT_NULL) && NOT defined(MA_NO_NULL) && (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_NULL))}
+{$if defined(MA_SUPPORT_NULL) AND NOT defined(MA_NO_NULL) AND (NOT defined(MA_ENABLE_ONLY_SPECIFIC_BACKENDS) OR defined(MA_ENABLE_NULL))}
 {$define MA_HAS_NULL}  
 {$endif}
   { The device's default state after initialization.  }
@@ -9912,7 +9912,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
   Engine
   
   *********************************************************************************************************************************************************** }
-{$if NOT defined(MA_NO_ENGINE) && NOT defined(MA_NO_NODE_GRAPH)}
+{$if NOT defined(MA_NO_ENGINE) AND NOT defined(MA_NO_NODE_GRAPH)}
 
   { Sound flags.  }
   { Resource manager flags.  }
