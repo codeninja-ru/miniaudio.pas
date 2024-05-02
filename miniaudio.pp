@@ -10,6 +10,10 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
     miniaudio.h
 }
 {$L miniaudio_lib.o}
+{$ifdef LINUX}
+{$linklib c}
+{$linklib m}
+{$endif}
 
     const MA_MAX_LOG_CALLBACKS = 4;
 {$if defined(cpu64)}
@@ -5734,7 +5738,7 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 {$define MA_SUPPORT_DSOUND}  
 {$define MA_SUPPORT_WINMM}  
   { Don't enable JACK here if compiling with Cosmopolitan. It'll be enabled in the Linux section below.  }
-{$if NOT defined(__COSMOPOLITAN__)}
+{$ifndef WINDOWS}
   { JACK is technically supported on Windows, but I don't know how many people use it in practice...  }
 {$define MA_SUPPORT_JACK}  
 {$endif}
@@ -5742,7 +5746,8 @@ uses Ctypes{$ifndef WIN32},unix{$endif};
 {$endif}
 {$if defined(MA_UNIX) AND NOT defined(MA_ORBIS) AND NOT defined(MA_PROSPERO)}
 {$if defined(MA_LINUX)}
-{$if NOT defined(MA_ANDROID) AND NOT defined(__COSMOPOLITAN__)   /* ALSA is not supported on Android. */}
+{if NOT defined(MA_ANDROID) AND NOT defined(__COSMOPOLITAN__)   /* ALSA is not supported on Android. */}
+{$ifndef ANDROID AND WINDOWS}
 {$define MA_SUPPORT_ALSA}  
 {$endif}
 {$endif}
