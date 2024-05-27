@@ -1,4 +1,4 @@
-EXAMPLE_TARGETS = example_simple_playback_sine example_simple_playback example_beep example_engine_hello_world
+EXAMPLE_TARGETS = example_simple_playback_sine example_simple_playback example_beep example_engine_hello_world example_engine_custom_data_source
 MINIAUDIO_SOURCE = miniaudio_lib.c
 MINIAUDIO_OUT = miniaudio_lib.o
 .PHONY: examples debug build

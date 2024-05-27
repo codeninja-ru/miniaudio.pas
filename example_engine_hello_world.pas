@@ -5,7 +5,6 @@ uses crt, miniaudio;
 {$H+}
 
 var engine: ma_engine;
-    result: ma_result;
     filename: string;
 
 begin
@@ -15,8 +14,7 @@ begin
     Exit;
   end;
 
-  result := ma_engine_init(nil, @engine);
-  if result <> MA_SUCCESS then
+  if ma_engine_init(nil, @engine) <> MA_SUCCESS then
   begin
     writeln('Failed to initialize audio engine.');
     Exit;
