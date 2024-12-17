@@ -2,14 +2,26 @@
 unit miniaudio;
 interface
 
-uses Ctypes{$ifndef WIN32},unix{$endif};
+uses Ctypes{$ifdef UNIX},unix{$endif};
 
 {
   Automatically converted by H2Pas 1.0.0 from miniaudio.h
   The following command line parameters were used:
     miniaudio.h
 }
-{$L miniaudio_lib.o}
+
+{$ifdef CPU64}
+  {$ifdef LINUX}{$L miniaudio_lib-linux-x84_64.o}{$endif}
+  {$ifdef WIN64}{$L miniaudio_lib-win64-x84_64.o}{$endif}
+  {$ifdef DARWIN}{$L miniaudio_lib-darwin-x84_64.o}{$endif}
+{$endif}
+
+{$ifdef CPU32}
+  {$ifdef WIN32}{$L miniaudio_lib-win32-i680.o}{$endif}
+  {$ifdef LINUX}{$L miniaudio_lib-linux-i680.o}{$endif}
+{$endif}
+
+{//$L miniaudio_lib.o}
 {$ifdef LINUX}
 {$linklib c}
 {$linklib m}

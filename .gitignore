@@ -1,5 +1,5 @@
 *.swp
-*.o
+miniaudio_lib.o
 *.ppu
 example_simple_playback
 example_simple_playback_sine

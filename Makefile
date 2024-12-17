@@ -21,6 +21,13 @@ examples: $(EXAMPLE_TARGETS)
 
 build: clean miniaudio examples
 
+crossbuild: clean
+	@echo "Corss Build: $(MINIAUDIO_SOURCE)"
+	x86_64-linux-gnu-gcc $(flag) -c $(MINIAUDIO_SOURCE) -o miniaudio_lib-linux-x86_64.o
+	x86_64-w64-mingw32-gcc $(flag) -c $(MINIAUDIO_SOURCE) -o miniaudio_lib-win64-x86_64.o
+	i686-w64-mingw32-gcc-win32 $(flag) -c $(MINIAUDIO_SOURCE) -o miniaudio_lib-win32-i686.o
+	i686-linux-gnu-gcc $(flag) -c $(MINIAUDIO_SOURCE) -o miniaudio_lib-linux-i686.o
+
 debug: flag = -g
 
 debug: build

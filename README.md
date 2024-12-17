@@ -40,6 +40,19 @@ end.
 
 See the examples.
 
+# Cross compile
+
+Use docker
+```
+docker build --tag miniaudio .
+docker run -it --rm -v your_project_dir:/usr/src miniaudio /bin/bash
+cd /usr/src
+make crossbuild
+```
+
+for now only Windows and Linux builds are supported
+
+
 ## Help
 more information about miniaudio
 https://miniaud.io

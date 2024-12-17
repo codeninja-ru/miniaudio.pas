@@ -103,6 +103,7 @@ begin
   ma_channel_map_init_standard(ma_standard_channel_map_default, pChannelMap, channelMapCap, DEVICE_CHANNELS);
   Result := MA_SUCCESS;
 end;
+
 function OnGetCursor(pDataSource:Pma_data_source; pCursor:Pma_uint64):ma_result;cdecl;
 begin
   // Retrieve the current position of the cursor here. Return MA_NOT_IMPLEMENTED and set *pCursor to 0 if there is no notion of a cursor.
