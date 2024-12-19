@@ -10,10 +10,21 @@ uses Ctypes{$ifdef UNIX},unix{$endif};
     miniaudio.h
 }
 
+{$ifdef windows}
+    {$linklib /usr/x86_64-w64-mingw32/lib/libkernel32.a}
+    {linklib /usr/x86_64-w64-mingw32/lib/libmsvcrt.a}
+    {$linklib /usr/x86_64-w64-mingw32/lib/libmingwex.a}
+    {$linklib /usr/x86_64-w64-mingw32/lib/libmingw32.a}
+    {$linklib /usr/x86_64-w64-mingw32/lib/libsynchronization.a}
+    {linklib /usr/x86_64-w64-mingw32/lib/libucrt.a}
+    {linklib /usr/x86_64-w64-mingw32/lib/libmingwex.a}
+    {$linklib /usr/x86_64-w64-mingw32/lib/libmsvcr120d.a}
+{$endif}
+
 {$ifdef CPU64}
-  {$ifdef LINUX}{$L miniaudio_lib-linux-x84_64.o}{$endif}
-  {$ifdef WIN64}{$L miniaudio_lib-win64-x84_64.o}{$endif}
-  {$ifdef DARWIN}{$L miniaudio_lib-darwin-x84_64.o}{$endif}
+  {$ifdef LINUX}{$L miniaudio_lib-linux-x86_64.o}{$endif}
+  {$ifdef WIN64}{$L miniaudio_lib-win64-x86_64.o}{$endif}
+  {$ifdef DARWIN}{$L miniaudio_lib-darwin-x86_64.o}{$endif}
 {$endif}
 
 {$ifdef CPU32}
@@ -4055,7 +4066,7 @@ uses Ctypes{$ifdef UNIX},unix{$endif};
 
     wchar_t = ma_uint16;
 {$endif}
-{$ifndef WIN32    /* If it's not Win32, assume POSIX. */}
+{$ifdef UNIX    /* If it's not Win32, assume POSIX. */}
 {$define MA_POSIX}  
 {$ifndef MA_NO_PTHREAD_IN_HEADER}
 {include <pthread.h>    /* Unfortunate #include, but needed for pthread_t, pthread_mutex_t and pthread_cond_t types. */}
@@ -12845,4 +12856,28 @@ uses Ctypes{$ifdef UNIX},unix{$endif};
 
 implementation
 
+{$ifdef windows}
+{FIX FOR windows}
+{see https://forum.lazarus.freepascal.org/index.php?topic=60332.0}
+{$ASMMODE Intel}
+procedure __chkstk_ms; assembler; nostackframe; public Name '___chkstk_ms';
+  asm
+           PUSH    RCX
+           PUSH    RAX
+           CMP     RAX, 4096
+           LEA     RCX, qword ptr [RSP+18H]
+           JC      @@002
+           @@001:
+           SUB     RCX, 4096
+           OR      qword ptr [RCX], 00H
+           SUB     RAX, 4096
+           CMP     RAX, 4096
+           JA      @@001
+           @@002:
+           SUB     RCX, RAX
+           OR      qword ptr [RCX], 00H
+           POP     RAX
+           POP     RCX
+  end;
+{$endif}
 end.

@@ -13,3 +13,4 @@ EOF
 RUN chmod +x build.sh
 RUN ./build.sh
 
+WORKDIR /usr/src
