@@ -33,3 +33,7 @@ For `ma_context` and `ma_device` types the macros were added and `case`-s were r
 All the functions and procedures were moved to the end of the file. The consts were moved to the beginning of the file. In short, all separate type declarations were merged into one.
 
 Some platform specific macros were fixed. For example `${ifdef __WIN32__}` was replaced by `${ifdef WIN32}`. See https://wiki.freepascal.org/Platform_defines
+
+## Cross compiling
+
+for freebsd https://marcelog.github.io/articles/cross_freebsd_compiler_in_linux.html
