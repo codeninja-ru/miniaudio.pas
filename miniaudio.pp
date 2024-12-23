@@ -11,6 +11,7 @@ uses Ctypes{$ifdef UNIX},unix{$endif};
 }
 
 {$ifdef windows}
+    { apt install mingw-w64-x86-64-dev }
     {$linklib /usr/x86_64-w64-mingw32/lib/libkernel32.a}
     {linklib /usr/x86_64-w64-mingw32/lib/libmsvcrt.a}
     {$linklib /usr/x86_64-w64-mingw32/lib/libmingwex.a}
@@ -28,8 +29,8 @@ uses Ctypes{$ifdef UNIX},unix{$endif};
 {$endif}
 
 {$ifdef CPU32}
-  {$ifdef WIN32}{$L miniaudio_lib-win32-i680.o}{$endif}
-  {$ifdef LINUX}{$L miniaudio_lib-linux-i680.o}{$endif}
+  {$ifdef WIN32}{$L miniaudio_lib-win32-i686.o}{$endif}
+  {$ifdef LINUX}{$L miniaudio_lib-linux-i686.o}{$endif}
 {$endif}
 
 {//$L miniaudio_lib.o}
