@@ -12886,17 +12886,18 @@ implementation
 { https://github.com/skeeto/w64devkit/blob/068236d/src/libchkstk.S }
 procedure __chkstk_ms; assembler; nostackframe; public Name '___chkstk_ms';
 {$ifdef cpu64}
+  label zero, one;
   asm
   	push %rax
 	  push %rcx
 	  neg  %rax		// rax = frame low address
 	  add  %rsp, %rax		// "
 	  mov  %gs:(0x10), %rcx	// rcx = stack low address
-	  jmp  @1f
-0:  	sub  $0x1000, %rcx	// extend stack into guard page
+	  jmp  one
+zero:  	sub  $0x1000, %rcx	// extend stack into guard page
 	  mov  %eax, (%rcx)	// commit page (two instruction bytes)
-1:  	cmp  %rax, %rcx
-	  ja   @0b
+one:  	cmp  %rax, %rcx
+	  ja   zero
 	  pop  %rcx
 	  pop  %rax
 	  ret
